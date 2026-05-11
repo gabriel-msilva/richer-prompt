@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.29.0", "version-pioneer>=0.0.16"]
+build-backend = "hatchling.build"
+
+[project]
+name = "richer-prompt"
+dynamic = ["version"]
+description = "Interactive prompts with Rich"
+readme = "README.md"
+authors = [{ name = "Gabriel Mello Silva", email = "gabriel-melloc@proton.me" }]
+requires-python = ">=3.11"
+dependencies = ["readchar>=4.2.2", "rich>=15.0.0"]
+
+[project.scripts]
+package-name = "richer_prompt:main"
+
+[dependency-groups]
+dev = [
+    "ipython>=9.10.1",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.3",
+    "ty>=0.0.33",
+    "version-pioneer>=0.0.16",
+]
+
+[tool.hatch.version]
+source = "version-pioneer"
+
+[tool.hatch.build.hooks.version-pioneer]
+# section is empty because we read config from `[tool.version-pioneer]` section.
+
+[tool.version-pioneer]
+versionscript = "src/richer_prompt/_version.py"
+versionfile-sdist = "src/richer_prompt/_version.py"
+versionfile-wheel = "richer_prompt/_version.py"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.ruff.lint]
+extend-select = [
+    "A",   # flake8-builtins
+    "B",   # flake8-bugbear
+    "I",   # isort
+    "SIM", # flake8-simplify
+]
