@@ -1,35 +1,4 @@
-from enum import StrEnum
-
 from rich.style import Style
-
-
-class Symbols(StrEnum):
-    """
-    A collection of Unicode symbols for use in prompts.
-
-    References
-    ----------
-    https://en.wikipedia.org/wiki/List_of_Unicode_characters
-    """
-
-    LEFT_POINTER = "❮"  # U+276E
-    RIGHT_POINTER = "❯"  # U+276F
-
-    LEFT_ARROW = "←"  # U+2190
-    RIGHT_ARROW = "→"  # U+2192
-    UP_ARROW = "↑"  # U+2191
-    DOWN_ARROW = "↓"  # U+2193
-
-    BULLET = "•"  # U+2022
-    MIDDLE_DOT = "·"  # U+00B7
-
-    BALLOT_BOX = "☐"  # U+2610
-    BALLOT_BOX_WITH_CHECK = "☑"  # U+2611
-    BALLOT_BOX_WITH_X = "☒"  # U+2612
-
-    CHECK_MARK = "✓"  # U+2713
-    BALLOT_X = "✗"  # U+2717
-
 
 RICHER_PROMPT_STYLES: dict[str, Style] = {
     "richer_prompt.title": Style(bold=True),
@@ -39,7 +8,7 @@ RICHER_PROMPT_STYLES: dict[str, Style] = {
     "richer_prompt.cursor.submit": Style(bold=True),
     "richer_prompt.choice": Style.null(),
     "richer_prompt.choice.description": Style(dim=True),
-    "richer_prompt.checkbox": Style(dim=True),
+    "richer_prompt.checkbox": Style.null(),
     "richer_prompt.checkbox.checked": Style(color="green"),
     "richer_prompt.tab.active": Style(color="light_steel_blue", reverse=True),
     "richer_prompt.tab.inactive": Style.null(),

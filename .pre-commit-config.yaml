@@ -26,6 +26,6 @@ repos:
     hooks:
       - id: ty
         name: ty check
-        entry: uv run ty check --fix
+        entry: uv run --active ty check --fix
         language: python
         files: \.py$
