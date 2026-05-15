@@ -10,10 +10,32 @@ from richer_prompt.models import (
     MultiSelectionModel,
     SelectionModel,
     SingleSelectionModel,
+    TabsSelectionModel,
 )
-from richer_prompt.renderers import MultiSelectRenderer, Renderer, SingleSelectRenderer
+from richer_prompt.renderers import (
+    MultiSelectRenderer,
+    Renderer,
+    SingleSelectRenderer,
+    TabsRenderer,
+)
 
 T = TypeVar("T")
+
+
+def loop(renderer: Renderer, model: SelectionModel, console: Console):
+    with Live(
+        renderer.render(model),
+        console=console,
+        refresh_per_second=30,
+        transient=True,
+    ) as live:
+        while not model.submitted:
+            model.handle_key(readchar.readkey())
+            live.update(renderer.render(model))
+
+    console.print(renderer.get_answer(model))
+
+    return model
 
 
 class InteractiveSession(Generic[T]):
@@ -58,3 +80,13 @@ class MultiSelectSession(InteractiveSession[list[T]]):
 
     def result(self) -> list[T]:
         return [option.value for option in self.model.selected_values]
+
+
+@dataclasses.dataclass(slots=True)
+class TabsSelectSession(InteractiveSession[T]):
+    model: TabsSelectionModel[T]
+    renderer: TabsRenderer
+    console: Console = dataclasses.field(default_factory=get_console)
+
+    def result(self) -> T:
+        return self.model.current.value

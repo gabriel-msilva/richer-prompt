@@ -13,6 +13,9 @@ class SelectionModel(Protocol, Generic[T]):
     cursor: int
     submitted: bool
 
+    def submit(self) -> None:
+        self.submitted = True
+
     def handle_key(self, key: str) -> None: ...
 
 
@@ -29,9 +32,6 @@ class SingleSelectionModel(SelectionModel[T]):
     @property
     def current(self) -> Option[T]:
         return self.options[self.cursor]
-
-    def submit(self) -> None:
-        self.submitted = True
 
     def move(self, delta: int) -> None:
         self.cursor = (self.cursor + delta) % len(self.options)
@@ -76,10 +76,6 @@ class MultiSelectionModel(SelectionModel[T]):
     def selected_values(self) -> list[Option[T]]:
         return [self.options[i] for i in sorted(self.selected)]
 
-    def submit(self):
-        if self.cursor == self.submit_index:
-            self.submitted = True
-
     def move(self, delta: int):
         total_rows = len(self.options) + 1
         self.cursor = (self.cursor + delta) % total_rows
@@ -107,3 +103,35 @@ class MultiSelectionModel(SelectionModel[T]):
                 if 0 <= n < len(self.options):
                     self.cursor = n
                     self.toggle()
+
+
+@dataclasses.dataclass(slots=True)
+class TabsSelectionModel(SelectionModel[T]):
+    options: list[Option[T]]
+    cursor: int = 0
+    submitted: bool = dataclasses.field(default=False, init=False)
+
+    def __post_init__(self):
+        if self.cursor < 0 or self.cursor >= len(self.options):
+            raise ValueError(f"Index '{self.cursor}' is out of range")
+
+    @property
+    def current(self) -> Option[T]:
+        return self.options[self.cursor]
+
+    def move(self, delta: int) -> None:
+        cursor = self.cursor + delta
+
+        cursor = min(len(self.options) - 1, cursor)
+        cursor = max(0, cursor)
+
+        self.cursor = cursor
+
+    def handle_key(self, key: str) -> None:
+        match key:
+            case readchar.key.RIGHT:
+                self.move(1)
+            case readchar.key.LEFT:
+                self.move(-1)
+            case readchar.key.ENTER:
+                self.submit()

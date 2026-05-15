@@ -87,7 +87,7 @@ class SingleSelectRenderer:
 
             label = Text(
                 option.display,
-                style="richer_prompt.cursor" if is_focused else "richer_prompt.choice",
+                style="richer_prompt.cursor" if is_focused else "richer_prompt.option",
             )
 
             row = Text.assemble(cursor, " ", number, label)
@@ -163,7 +163,7 @@ class MultiSelectRenderer:
 
             label = Text(
                 option.display,
-                style="richer_prompt.cursor" if is_focused else "richer_prompt.choice",
+                style="richer_prompt.cursor" if is_focused else "richer_prompt.option",
             )
 
             row = Text.assemble(cursor, " ", number, checkbox, " ", label)
@@ -188,7 +188,7 @@ class MultiSelectRenderer:
                 "Submit",
                 style="richer_prompt.cursor"
                 if model.cursor == model.submit_index
-                else "richer_prompt.choice",
+                else "richer_prompt.option",
             )
         )
 
@@ -212,6 +212,55 @@ class MultiSelectRenderer:
             return message.append(values, style="richer_prompt.cursor")
 
         return message.append("(none)", style="richer_prompt.description")
+
+
+@dataclasses.dataclass(slots=True)
+class TabsRenderer:
+    raw_message: dataclasses.InitVar[TextType]
+    message: Text = dataclasses.field(init=False, repr=False)
+
+    def __post_init__(self, message: TextType):
+        self.message = ensure_text(message, default_style="richer_prompt.title")
+
+    def render(self, model: SingleSelectionModel) -> Group:
+        rows: list[Text] = []
+
+        rows.append(self.message)
+        rows.append(Text())
+
+        tabs = Text()
+
+        tabs.append(Symbols.LEFT_ARROW, style="dim" if model.cursor == 0 else "")
+        tabs.append(" ")
+
+        for i, option in enumerate(model.options):
+            if i > 0:
+                tabs.append(" ")
+
+            is_focused = i == model.cursor
+
+            tabs.append(
+                f" {option.display} ",
+                style="richer_prompt.tab.active" if is_focused else "richer_prompt.tab",
+            )
+
+        tabs.append(" ")
+        tabs.append(
+            Symbols.RIGHT_ARROW,
+            style="dim" if model.cursor == len(model.options) - 1 else "",
+        )
+
+        rows.append(tabs)
+        rows.append(Text(model.current.description, style="richer_prompt.description"))
+
+        return Group(*rows)
+
+    def get_answer(self, model: SingleSelectionModel) -> Text:
+        return (
+            self.message.copy()
+            .append(": ")
+            .append(model.current.display, style="richer_prompt.cursor")
+        )
 
 
 def ensure_text(value: TextType, default_style: str | Style = "") -> Text:
