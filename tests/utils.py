@@ -22,7 +22,10 @@ def assert_snapshot(prompt, model, expected: str, raw: bool = False) -> None:
     rendered = capture.get()
 
     with console.capture() as capture:
-        console.print(textwrap.dedent(expected).removeprefix("\n").removesuffix("\n"))
+        console.print(
+            textwrap.dedent(expected).removeprefix("\n").removesuffix("\n"),
+            highlight=False,
+        )
 
     expected = capture.get()
 
