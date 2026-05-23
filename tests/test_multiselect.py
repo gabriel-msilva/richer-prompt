@@ -374,7 +374,7 @@ def test_style():
       [richer_prompt.description]1. [/][ ] a  [richer_prompt.description]The first option[/]
       [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second option[/]
       [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third option[/]
-    [richer_prompt.cursor]❯    Submit[/]
+    [richer_prompt.cursor]❯[/]    [richer_prompt.cursor]Submit[/]
 
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
     """
