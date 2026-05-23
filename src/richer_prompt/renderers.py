@@ -1,6 +1,5 @@
 import dataclasses
-from enum import StrEnum
-from typing import Protocol
+from typing import Final, Protocol
 
 from rich.console import Group, RenderableType
 from rich.style import Style
@@ -12,33 +11,23 @@ from richer_prompt.models import (
     SingleSelectionModel,
 )
 
+LEFT_POINTER: Final = "❮"
+RIGHT_POINTER: Final = "❯"
 
-class Symbols(StrEnum):
-    """
-    A collection of Unicode symbols for use in prompts.
+LEFT_ARROW: Final = "←"
+RIGHT_ARROW: Final = "→"
+UP_ARROW: Final = "↑"
+DOWN_ARROW: Final = "↓"
 
-    References
-    ----------
-    https://en.wikipedia.org/wiki/List_of_Unicode_characters
-    """
+BULLET: Final = "•"
+MIDDLE_DOT: Final = "·"
 
-    LEFT_POINTER = "❮"  # U+276E
-    RIGHT_POINTER = "❯"  # U+276F
+BALLOT_BOX: Final = "☐"
+BALLOT_BOX_WITH_CHECK: Final = "☑"
+BALLOT_BOX_WITH_X: Final = "☒"
 
-    LEFT_ARROW = "←"  # U+2190
-    RIGHT_ARROW = "→"  # U+2192
-    UP_ARROW = "↑"  # U+2191
-    DOWN_ARROW = "↓"  # U+2193
-
-    BULLET = "•"  # U+2022
-    MIDDLE_DOT = "·"  # U+00B7
-
-    BALLOT_BOX = "☐"  # U+2610
-    BALLOT_BOX_WITH_CHECK = "☑"  # U+2611
-    BALLOT_BOX_WITH_X = "☒"  # U+2612
-
-    CHECK_MARK = "✓"  # U+2713
-    BALLOT_X = "✗"  # U+2717
+CHECK_MARK: Final = "✓"
+BALLOT_X: Final = "✗"
 
 
 class Renderer(Protocol):
@@ -52,7 +41,7 @@ class SingleSelectRenderer:
     raw_message: dataclasses.InitVar[TextType]
     message: Text = dataclasses.field(init=False, repr=False)
 
-    cursor_pointer: str = Symbols.RIGHT_POINTER
+    cursor_pointer: str = RIGHT_POINTER
     numbered: bool = True
     show_hint: bool = True
 
@@ -102,7 +91,7 @@ class SingleSelectRenderer:
             rows.append(Text())
             rows.append(
                 format_hint(
-                    f"{Symbols.UP_ARROW}{Symbols.DOWN_ARROW} to navigate",
+                    f"{UP_ARROW}{DOWN_ARROW} to navigate",
                     "Enter to select",
                 )
             )
@@ -122,7 +111,7 @@ class MultiSelectRenderer:
     raw_message: dataclasses.InitVar[TextType]
     message: Text = dataclasses.field(init=False, repr=False)
 
-    cursor_pointer: str = Symbols.RIGHT_POINTER
+    cursor_pointer: str = RIGHT_POINTER
     numbered: bool = True
     show_hint: bool = True
 
@@ -158,7 +147,7 @@ class MultiSelectRenderer:
             )
 
             checkbox = (
-                Text(f"[{Symbols.CHECK_MARK}]", style="richer_prompt.checkbox.checked")
+                Text(f"[{CHECK_MARK}]", style="richer_prompt.checkbox.checked")
                 if is_selected
                 else Text("[ ]", style="richer_prompt.checkbox")
             )
@@ -195,7 +184,7 @@ class MultiSelectRenderer:
             rows.append(Text())
             rows.append(
                 format_hint(
-                    f"{Symbols.UP_ARROW}{Symbols.DOWN_ARROW} to navigate",
+                    f"{UP_ARROW}{DOWN_ARROW} to navigate",
                     "Enter to select",
                     "Submit to finish",
                 )
@@ -230,7 +219,7 @@ class TabsRenderer:
 
         tabs = Text()
 
-        tabs.append(Symbols.LEFT_ARROW, style="dim" if model.cursor == 0 else "")
+        tabs.append(LEFT_ARROW, style="dim" if model.cursor == 0 else "")
         tabs.append(" ")
 
         for i, option in enumerate(model.options):
@@ -246,7 +235,7 @@ class TabsRenderer:
 
         tabs.append(" ")
         tabs.append(
-            Symbols.RIGHT_ARROW,
+            RIGHT_ARROW,
             style="dim" if model.cursor == len(model.options) - 1 else "",
         )
 
@@ -272,4 +261,4 @@ def ensure_text(value: TextType, default_style: str | Style = "") -> Text:
 
 
 def format_hint(*parts: str) -> Text:
-    return Text(f" {Symbols.MIDDLE_DOT} ".join(parts), style="richer_prompt.hint")
+    return Text(f" {MIDDLE_DOT} ".join(parts), style="richer_prompt.hint")
