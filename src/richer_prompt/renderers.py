@@ -176,23 +176,20 @@ class MultiSelectRenderer:
 
             rows.append(row)
 
-        submit_cursor = (
-            self.cursor_pointer
-            if model.cursor == model.submit_index
-            else " " * len(self.cursor_pointer)
-        )
+        submit_focused = model.cursor == model.submit_index
 
-        rows.append(
-            Text.assemble(
-                submit_cursor,
-                " ",
-                " " * (max_number_length + 2) if self.numbered else "",
-                "Submit",
-                style="richer_prompt.cursor"
-                if model.cursor == model.submit_index
-                else "richer_prompt.option",
-            )
+        submit_cursor = (
+            Text(self.cursor_pointer, style="richer_prompt.cursor")
+            if submit_focused
+            else Text(" " * len(self.cursor_pointer))
         )
+        submit_label = Text(
+            "Submit",
+            style="richer_prompt.cursor" if submit_focused else "richer_prompt.option",
+        )
+        padding = " " * (max_number_length + 2) if self.numbered else ""
+
+        rows.append(Text.assemble(submit_cursor, " ", padding, submit_label))
 
         if self.show_hint:
             rows.append(Text())
