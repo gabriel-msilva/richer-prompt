@@ -62,7 +62,8 @@ class SingleSelectRenderer:
     def render(self, model: SingleSelectionModel) -> Group:
         rows: list[Text] = []
 
-        rows.append(self.message)
+        message = self.message.copy().append(":")
+        rows.append(message)
         rows.append(Text())
 
         max_number_length = len(str(len(model.options)))
@@ -131,7 +132,8 @@ class MultiSelectRenderer:
     def render(self, model: MultiSelectionModel) -> Group:
         rows: list[Text] = []
 
-        rows.append(self.message)
+        message = self.message.copy().append(":")
+        rows.append(message)
         rows.append(Text())
 
         max_number_length = len(str(len(model.options)))
@@ -225,7 +227,8 @@ class TabsRenderer:
     def render(self, model: SingleSelectionModel) -> Group:
         rows: list[Text] = []
 
-        rows.append(self.message)
+        message = self.message.copy().append(":")
+        rows.append(message)
         rows.append(Text())
 
         tabs = Text()

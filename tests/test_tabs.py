@@ -77,7 +77,7 @@ def test_that_str_options_are_rendered(tabs: Tabs):
     model = TabsSelectionModel(tabs.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ←  a   b   c  →
 
@@ -99,7 +99,7 @@ def test_that_labels_and_descriptions_are_rendered():
     model = TabsSelectionModel(prompt.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ←  Option A   b   Option C  →
 
@@ -110,7 +110,7 @@ def test_that_labels_and_descriptions_are_rendered():
     model = TabsSelectionModel(prompt.options, cursor=1)
 
     expected = """
-    Select an option
+    Select an option:
 
     ←  Option A   b   Option C  →
     The second option
@@ -132,7 +132,7 @@ def test_style():
     model = TabsSelectionModel(prompt.options)
 
     expected = """
-    [richer_prompt.title]Select an option[/]
+    [richer_prompt.title]Select an option:[/]
 
     [richer_prompt.description]←[/] [richer_prompt.tab.active] a [/]  b   c  →
     [richer_prompt.description]The first option[/]

@@ -189,7 +189,7 @@ def test_that_str_options_are_rendered(multiselect: MultiSelect):
     model = MultiSelectionModel(multiselect.options)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     ❯ 1. [ ] a
       2. [ ] b
@@ -215,7 +215,7 @@ def test_that_labels_and_descriptions_are_rendered():
     model = MultiSelectionModel(prompt.options)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     ❯ 1. [ ] Option A
       2. [ ] b  The second option
@@ -233,7 +233,7 @@ def test_that_options_are_rendered_without_numbers():
     model = MultiSelectionModel(prompt.options)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     ❯ [ ] a
       [ ] b
@@ -250,7 +250,7 @@ def test_that_cursor_pointer_moves(multiselect: MultiSelect):
     model = MultiSelectionModel(multiselect.options, cursor=1)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
       1. [ ] a
     ❯ 2. [ ] b
@@ -267,7 +267,7 @@ def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
     model = MultiSelectionModel(multiselect.options, selected={0, 2})
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     ❯ 1. [✓] a
       2. [ ] b
@@ -287,7 +287,7 @@ def test_custom_pointer():
     model = MultiSelectionModel(multiselect.options)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     >> 1. [ ] a
        2. [ ] b
@@ -305,7 +305,7 @@ def test_that_hint_is_hidden():
     model = MultiSelectionModel(prompt.options)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     ❯ 1. [ ] a
       2. [ ] b
@@ -323,7 +323,7 @@ def test_that_10_or_more_options_are_aligned():
     model = MultiSelectionModel(prompt.options)
 
     expected = """
-    Select multiple options
+    Select multiple options:
 
     ❯  1. [ ] Option 1
        2. [ ] Option 2
@@ -354,14 +354,27 @@ def test_style():
     )
 
     model = MultiSelectionModel(prompt.options, selected={0})
-
     expected = """
-    [richer_prompt.title]Select multiple options[/]
+    [richer_prompt.title]Select multiple options:[/]
 
     [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.checkbox.checked][✓][/] [richer_prompt.cursor]a[/]  [richer_prompt.description]The first option[/]
       [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second option[/]
       [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third option[/]
          Submit
+
+    [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
+    """
+
+    assert_snapshot(prompt, model, expected, raw=True)
+
+    model = MultiSelectionModel(prompt.options, cursor=3)
+    expected = """
+    [richer_prompt.title]Select multiple options:[/]
+
+      [richer_prompt.description]1. [/][ ] a  [richer_prompt.description]The first option[/]
+      [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second option[/]
+      [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third option[/]
+    [richer_prompt.cursor]❯    Submit[/]
 
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
     """
