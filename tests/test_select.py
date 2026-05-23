@@ -91,7 +91,7 @@ def test_that_str_options_are_rendered(select: Select):
     model = SingleSelectionModel(select.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ❯ 1. a
       2. b
@@ -116,7 +116,7 @@ def test_that_labels_and_descriptions_are_rendered():
     model = SingleSelectionModel(prompt.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ❯ 1. Option A
       2. b  The second option
@@ -133,7 +133,7 @@ def test_that_options_are_rendered_without_numbers():
     model = SingleSelectionModel(select.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ❯ a
       b
@@ -149,7 +149,7 @@ def test_that_cursor_pointer_moves(select: Select):
     model = SingleSelectionModel(select.options, cursor=1)
 
     expected = """
-    Select an option
+    Select an option:
 
       1. a
     ❯ 2. b
@@ -166,7 +166,7 @@ def test_custom_pointer():
     model = SingleSelectionModel(prompt.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     >> 1. a
        2. b
@@ -183,7 +183,7 @@ def test_that_hint_is_hidden():
     model = SingleSelectionModel(prompt.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ❯ 1. a
       2. b
@@ -198,7 +198,7 @@ def test_that_10_or_more_options_are_aligned():
     model = SingleSelectionModel(prompt.options)
 
     expected = """
-    Select an option
+    Select an option:
 
     ❯  1. Option 1
        2. Option 2
@@ -230,7 +230,7 @@ def test_style():
     model = SingleSelectionModel(prompt.options)
 
     expected = """
-    [richer_prompt.title]Select an option[/]
+    [richer_prompt.title]Select an option:[/]
 
     [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.cursor]a[/]  [richer_prompt.description]The first option[/]
       [richer_prompt.description]2. [/][richer_prompt.option]b[/]  [richer_prompt.description]The second option[/]
