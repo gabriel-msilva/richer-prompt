@@ -7,7 +7,7 @@ from rich.text import TextType
 
 from richer_prompt.models import MultiSelectionModel
 from richer_prompt.options import Option, ensure_option
-from richer_prompt.renderers import MultiSelectRenderer, Symbols
+from richer_prompt.renderers import RIGHT_POINTER, MultiSelectRenderer
 from richer_prompt.session import MultiSelectSession
 
 T = TypeVar("T")
@@ -19,7 +19,7 @@ class MultiSelect(Generic[T]):
         message: TextType,
         options: Iterable[Option[T] | T],
         *,
-        cursor_pointer: str = Symbols.RIGHT_POINTER,
+        cursor_pointer: str = RIGHT_POINTER,
         numbered: bool = True,
         show_hint: bool = True,
         console: Console | None = None,
@@ -47,7 +47,7 @@ class MultiSelect(Generic[T]):
         *,
         index: int = 0,
         default: set[int] | None = None,
-        cursor_pointer: str = Symbols.RIGHT_POINTER,
+        cursor_pointer: str = RIGHT_POINTER,
         numbered: bool = True,
         show_hint: bool = True,
         console: Console | None = None,
