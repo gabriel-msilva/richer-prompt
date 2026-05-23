@@ -215,3 +215,28 @@ def test_that_10_or_more_options_are_aligned():
     """
 
     assert_snapshot(prompt, model, expected)
+
+
+def test_style():
+    prompt = Select(
+        "Select an option",
+        [
+            Option("a", description="The first option"),
+            Option("b", description="The second option"),
+            Option("c", description="The third option"),
+        ],
+    )
+
+    model = SingleSelectionModel(prompt.options)
+
+    expected = """
+    [richer_prompt.title]Select an option[/]
+
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.cursor]a[/]  [richer_prompt.description]The first option[/]
+      [richer_prompt.description]2. [/][richer_prompt.option]b[/]  [richer_prompt.description]The second option[/]
+      [richer_prompt.description]3. [/][richer_prompt.option]c[/]  [richer_prompt.description]The third option[/]
+
+    [richer_prompt.hint]↑↓ to navigate · Enter to select[/]
+    """
+
+    assert_snapshot(prompt, model, expected, raw=True)
