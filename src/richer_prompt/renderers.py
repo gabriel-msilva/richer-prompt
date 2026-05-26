@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Final, Protocol
 
 from rich.console import Group, RenderableType
@@ -36,17 +35,19 @@ class Renderer(Protocol):
     def get_answer(self, model: SelectionModel) -> Text: ...
 
 
-@dataclasses.dataclass(slots=True)
 class SingleSelectRenderer:
-    raw_message: dataclasses.InitVar[TextType]
-    message: Text = dataclasses.field(init=False, repr=False)
-
-    cursor_pointer: str = RIGHT_POINTER
-    numbered: bool = True
-    show_hint: bool = True
-
-    def __post_init__(self, message: TextType):
+    def __init__(
+        self,
+        message: TextType,
+        *,
+        cursor_pointer: str = RIGHT_POINTER,
+        numbered: bool = True,
+        show_hint: bool = True,
+    ):
         self.message = ensure_text(message, default_style="richer_prompt.title")
+        self.cursor_pointer = cursor_pointer
+        self.numbered = numbered
+        self.show_hint = show_hint
 
     def render(self, model: SingleSelectionModel) -> Group:
         rows: list[Text] = []
@@ -106,17 +107,19 @@ class SingleSelectRenderer:
         )
 
 
-@dataclasses.dataclass(slots=True)
 class MultiSelectRenderer:
-    raw_message: dataclasses.InitVar[TextType]
-    message: Text = dataclasses.field(init=False, repr=False)
-
-    cursor_pointer: str = RIGHT_POINTER
-    numbered: bool = True
-    show_hint: bool = True
-
-    def __post_init__(self, message: TextType):
+    def __init__(
+        self,
+        message: TextType,
+        *,
+        cursor_pointer: str = RIGHT_POINTER,
+        numbered: bool = True,
+        show_hint: bool = True,
+    ):
         self.message = ensure_text(message, default_style="richer_prompt.title")
+        self.cursor_pointer = cursor_pointer
+        self.numbered = numbered
+        self.show_hint = show_hint
 
     def render(self, model: MultiSelectionModel) -> Group:
         rows: list[Text] = []
@@ -165,16 +168,16 @@ class MultiSelectRenderer:
 
             rows.append(row)
 
-        submit_focused = model.cursor == model.submit_index
-
         submit_cursor = (
             Text(self.cursor_pointer, style="richer_prompt.cursor")
-            if submit_focused
+            if model.is_on_submit()
             else Text(" " * len(self.cursor_pointer))
         )
         submit_label = Text(
             "Submit",
-            style="richer_prompt.cursor" if submit_focused else "richer_prompt.option",
+            style="richer_prompt.cursor"
+            if model.is_on_submit()
+            else "richer_prompt.option",
         )
         padding = " " * (max_number_length + 2) if self.numbered else ""
 
@@ -202,12 +205,8 @@ class MultiSelectRenderer:
         return message.append("(none)", style="richer_prompt.description")
 
 
-@dataclasses.dataclass(slots=True)
 class TabsRenderer:
-    raw_message: dataclasses.InitVar[TextType]
-    message: Text = dataclasses.field(init=False, repr=False)
-
-    def __post_init__(self, message: TextType):
+    def __init__(self, message: TextType):
         self.message = ensure_text(message, default_style="richer_prompt.title")
 
     def render(self, model: SingleSelectionModel) -> Group:

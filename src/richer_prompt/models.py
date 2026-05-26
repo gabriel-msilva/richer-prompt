@@ -1,5 +1,5 @@
-import dataclasses
-from typing import Generic, Protocol, TypeVar
+from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
 
 import readchar
 
@@ -8,27 +8,27 @@ from richer_prompt.options import Option
 T = TypeVar("T")
 
 
-class SelectionModel(Protocol, Generic[T]):
-    options: list[Option[T]]
-    cursor: int
-    submitted: bool
+class SelectionModel(ABC, Generic[T]):
+    def __init__(self, options: list[Option[T]], cursor: int = 0):
+        if cursor < 0 or cursor >= len(options):
+            raise ValueError(f"Index '{cursor}' is out of range")
+
+        self.options = options
+        self.cursor = cursor
+        self._submitted = False
+
+    @property
+    def submitted(self) -> bool:
+        return self._submitted
 
     def submit(self) -> None:
-        self.submitted = True
+        self._submitted = True
 
+    @abstractmethod
     def handle_key(self, key: str) -> None: ...
 
 
-@dataclasses.dataclass(slots=True)
 class SingleSelectionModel(SelectionModel[T]):
-    options: list[Option[T]]
-    cursor: int = 0
-    submitted: bool = dataclasses.field(default=False, init=False)
-
-    def __post_init__(self):
-        if self.cursor < 0 or self.cursor >= len(self.options):
-            raise ValueError(f"Index '{self.cursor}' is out of range")
-
     @property
     def current(self) -> Option[T]:
         return self.options[self.cursor]
@@ -51,26 +51,27 @@ class SingleSelectionModel(SelectionModel[T]):
                     self.submit()
 
 
-@dataclasses.dataclass(slots=True)
 class MultiSelectionModel(SelectionModel[T]):
-    options: list[Option[T]]
-    cursor: int = 0
-    selected: set[int] = dataclasses.field(default_factory=set)
-    submitted: bool = dataclasses.field(default=False, init=False)
+    def __init__(
+        self,
+        options: list[Option[T]],
+        cursor: int = 0,
+        selected: set[int] | None = None,
+    ):
+        selected = set(selected or [])
 
-    def __post_init__(self):
-        if self.cursor < 0 or self.cursor > len(
-            self.options
-        ):  # may point to the submit button
-            raise ValueError(f"Index '{self.cursor}' is out of range")
+        # may point to the submit button
+        if cursor < 0 or cursor > len(options):
+            raise ValueError(f"Index '{cursor}' is out of range")
 
-        offenders = [x for x in self.selected if x < 0 or x >= len(self.options)]
+        offenders = [x for x in selected if x < 0 or x >= len(options)]
         if offenders:
             raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
 
-    @property
-    def submit_index(self) -> int:
-        return len(self.options)
+        self.options = options
+        self.cursor = cursor
+        self.selected = set(selected)
+        self._submitted = False
 
     @property
     def selected_values(self) -> list[Option[T]]:
@@ -92,11 +93,9 @@ class MultiSelectionModel(SelectionModel[T]):
                 self.move(1)
             case readchar.key.UP:
                 self.move(-1)
-            case readchar.key.ENTER if self.cursor == self.submit_index:
-                self.submitted = True
-            case readchar.key.ENTER | readchar.key.SPACE if (
-                self.cursor != self.submit_index
-            ):
+            case readchar.key.ENTER if self.is_on_submit():
+                self.submit()
+            case readchar.key.ENTER | readchar.key.SPACE if not self.is_on_submit():
                 self.toggle()
             case _ if key.isdigit():
                 n = int(key) - 1
@@ -104,26 +103,18 @@ class MultiSelectionModel(SelectionModel[T]):
                     self.cursor = n
                     self.toggle()
 
+    def is_on_submit(self) -> bool:
+        return self.cursor == len(self.options)
 
-@dataclasses.dataclass(slots=True)
+
 class TabsSelectionModel(SelectionModel[T]):
-    options: list[Option[T]]
-    cursor: int = 0
-    submitted: bool = dataclasses.field(default=False, init=False)
-
-    def __post_init__(self):
-        if self.cursor < 0 or self.cursor >= len(self.options):
-            raise ValueError(f"Index '{self.cursor}' is out of range")
-
     @property
     def current(self) -> Option[T]:
         return self.options[self.cursor]
 
     def move(self, delta: int) -> None:
         cursor = self.cursor + delta
-
-        cursor = min(len(self.options) - 1, cursor)
-        cursor = max(0, cursor)
+        cursor = max(0, min(len(self.options) - 1, cursor))
 
         self.cursor = cursor
 
