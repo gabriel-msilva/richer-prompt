@@ -212,9 +212,10 @@ class TabsRenderer:
     def render(self, model: SingleSelectionModel) -> Group:
         rows: list[Text] = []
 
-        message = self.message.copy().append(":")
-        rows.append(message)
-        rows.append(Text())
+        if self.message:
+            message = self.message.copy().append(":")
+            rows.append(message)
+            rows.append(Text())
 
         tabs = Text()
 

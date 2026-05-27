@@ -119,10 +119,14 @@ class TabsSelectionModel(SelectionModel[T]):
         self.cursor = cursor
 
     def handle_key(self, key: str) -> None:
+        previous = {readchar.key.LEFT}
+        if hasattr(readchar.key, "SHIFT_TAB"):
+            previous.add(readchar.key.SHIFT_TAB)
+
         match key:
-            case readchar.key.RIGHT:
+            case readchar.key.RIGHT | readchar.key.TAB:
                 self.move(1)
-            case readchar.key.LEFT:
+            case k if k in previous:
                 self.move(-1)
             case readchar.key.ENTER:
                 self.submit()

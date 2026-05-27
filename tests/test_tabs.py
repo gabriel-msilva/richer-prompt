@@ -19,13 +19,27 @@ def test_that_option_is_selected(tabs: Tabs):
         tabs,
         [
             readchar.key.RIGHT,
-            readchar.key.RIGHT,
+            readchar.key.TAB,
             readchar.key.LEFT,
             readchar.key.ENTER,
         ],
     )
 
     assert result == "b"
+
+
+@pytest.mark.skipif(
+    not hasattr(readchar.key, "SHIFT_TAB"), reason="SHIFT_TAB not supported in Windows"
+)
+def test_that_shift_tab_move_to_previous(tabs: Tabs):
+    keys = [
+        readchar.key.TAB,
+        readchar.key.TAB,
+        readchar.key.SHIFT_TAB,  # ty:ignore[unresolved-attribute]
+        readchar.key.ENTER,
+    ]
+
+    assert simulate(tabs, keys) == "b"
 
 
 @pytest.mark.parametrize(
