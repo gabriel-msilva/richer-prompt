@@ -22,22 +22,6 @@ from richer_prompt.renderers import (
 T = TypeVar("T")
 
 
-def loop(renderer: Renderer, model: SelectionModel, console: Console):
-    with Live(
-        renderer.render(model),
-        console=console,
-        refresh_per_second=30,
-        transient=True,
-    ) as live:
-        while not model.submitted:
-            model.handle_key(readchar.readkey())
-            live.update(renderer.render(model))
-
-    console.print(renderer.get_answer(model))
-
-    return model
-
-
 class InteractiveSession(Generic[T]):
     model: SelectionModel[T]
     renderer: Renderer
