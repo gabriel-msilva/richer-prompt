@@ -78,21 +78,3 @@ class MultiSelect(Generic[T]):
 
     def pre_prompt(self) -> None:
         """Hook to display something before the prompt."""
-
-
-if __name__ == "__main__":
-    MultiSelect.ask("Select toppings", ["Lettuce", "Tomato", "Onion", "Pickles"])
-
-    MultiSelect.ask(
-        "Select sauces",
-        [
-            Option("ketchup", "Ketchup", description="Classic tomato ketchup"),
-            Option("mustard", "Mustard", description="Dijon mustard with a tangy kick"),
-            Option("mayo", "Mayonnaise", description="Creamy mayonnaise"),
-            Option(
-                "seasoned_mayo",
-                "Seasoned Mayonnaise",
-                description="Creamy mayo with herbs and spices",
-            ),
-        ],
-    )

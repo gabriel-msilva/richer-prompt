@@ -11,9 +11,6 @@ authors = [{ name = "Gabriel Mello Silva", email = "gabriel-melloc@proton.me" }]
 requires-python = ">=3.11"
 dependencies = ["readchar>=4.2.2", "rich>=15.0.0"]
 
-[project.scripts]
-package-name = "richer_prompt:main"
-
 [dependency-groups]
 dev = [
     "ipython>=9.10.1",
