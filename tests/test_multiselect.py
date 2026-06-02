@@ -11,7 +11,7 @@ from tests.utils import assert_snapshot, simulate
 
 @pytest.fixture
 def multiselect(console) -> MultiSelect:
-    return MultiSelect("Select multiple options", ["a", "b", "c"], console=console)
+    return MultiSelect("Select multiple options:", ["a", "b", "c"], console=console)
 
 
 def test_that_options_are_selected(multiselect: MultiSelect):
@@ -204,7 +204,7 @@ def test_that_str_options_are_rendered(multiselect: MultiSelect):
 
 def test_that_labels_and_descriptions_are_rendered():
     prompt = MultiSelect(
-        "Select multiple options",
+        "Select multiple options:",
         [
             Option(value="a", label="Option A"),
             Option(value="b", description="The second option"),
@@ -229,7 +229,7 @@ def test_that_labels_and_descriptions_are_rendered():
 
 
 def test_that_options_are_rendered_without_numbers():
-    prompt = MultiSelect("Select multiple options", ["a", "b", "c"], numbered=False)
+    prompt = MultiSelect("Select multiple options:", ["a", "b", "c"], numbered=False)
     model = MultiSelectionModel(prompt.options)
 
     expected = """
@@ -282,7 +282,7 @@ def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
 
 def test_custom_pointer():
     multiselect = MultiSelect(
-        "Select multiple options", ["a", "b", "c"], cursor_pointer=">>"
+        "Select multiple options:", ["a", "b", "c"], cursor_pointer=">>"
     )
     model = MultiSelectionModel(multiselect.options)
 
@@ -301,7 +301,7 @@ def test_custom_pointer():
 
 
 def test_that_hint_is_hidden():
-    prompt = MultiSelect("Select multiple options", ["a", "b", "c"], show_hint=False)
+    prompt = MultiSelect("Select multiple options:", ["a", "b", "c"], show_hint=False)
     model = MultiSelectionModel(prompt.options)
 
     expected = """
@@ -318,7 +318,7 @@ def test_that_hint_is_hidden():
 
 def test_that_10_or_more_options_are_aligned():
     prompt = MultiSelect(
-        "Select multiple options", [f"Option {i}" for i in range(1, 11)]
+        "Select multiple options:", [f"Option {i}" for i in range(1, 11)]
     )
     model = MultiSelectionModel(prompt.options)
 
@@ -345,7 +345,7 @@ def test_that_10_or_more_options_are_aligned():
 
 def test_style():
     prompt = MultiSelect(
-        "Select multiple options",
+        "Select multiple options:",
         [
             Option("a", description="The first option"),
             Option("b", description="The second option"),
