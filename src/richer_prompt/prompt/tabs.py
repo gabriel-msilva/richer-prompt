@@ -56,15 +56,3 @@ class Tabs(Generic[T]):
 
     def pre_prompt(self) -> None:
         """Hook to display something before the prompt."""
-
-
-if __name__ == "__main__":
-    Tabs.ask(
-        "Game difficulty",
-        [
-            Option("Easy", description="Reduces enemy health and damage by 50%"),
-            Option("Normal"),
-            Option("Hard", description="Increases enemy health and damage by 50%"),
-        ],
-        index=1,
-    )

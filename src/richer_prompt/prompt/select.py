@@ -71,16 +71,3 @@ class Select(Generic[T]):
 
     def pre_prompt(self) -> None:
         """Hook to display something before the prompt."""
-
-
-if __name__ == "__main__":
-    Select.ask("Choose a protein", ["Ham", "Chicken", "Tofu"])
-
-    Select.ask(
-        "Choose a bread",
-        [
-            Option("white", label="White", description="Soft and fluffy"),
-            Option("whole_wheat", label="Whole wheat", description="Nutty and hearty"),
-            Option("sourdough", label="Sourdough", description="Tangy and crusty"),
-        ],
-    )
