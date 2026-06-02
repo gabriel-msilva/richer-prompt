@@ -11,7 +11,7 @@ from tests.utils import assert_snapshot, simulate
 
 @pytest.fixture
 def select(console) -> Select:
-    return Select("Select an option", ["a", "b", "c"], console=console)
+    return Select("Select an option:", ["a", "b", "c"], console=console)
 
 
 def test_that_option_is_selected(select: Select):
@@ -77,7 +77,7 @@ def test_ask():
         "richer_prompt.models.readchar.readkey",
         side_effect=[readchar.key.UP, readchar.key.ENTER],
     ):
-        assert Select.ask("Select an option", ["a", "b", "c"], index=1) == "a"
+        assert Select.ask("Select an option:", ["a", "b", "c"], index=1) == "a"
 
 
 def test_that_answer_is_rendered(select: Select):
@@ -105,7 +105,7 @@ def test_that_str_options_are_rendered(select: Select):
 
 def test_that_labels_and_descriptions_are_rendered():
     prompt = Select(
-        "Select an option",
+        "Select an option:",
         [
             Option(value="a", label="Option A"),
             Option(value="b", description="The second option"),
@@ -129,7 +129,7 @@ def test_that_labels_and_descriptions_are_rendered():
 
 
 def test_that_options_are_rendered_without_numbers():
-    select = Select("Select an option", ["a", "b", "c"], numbered=False)
+    select = Select("Select an option:", ["a", "b", "c"], numbered=False)
     model = SingleSelectionModel(select.options)
 
     expected = """
@@ -162,7 +162,7 @@ def test_that_cursor_pointer_moves(select: Select):
 
 
 def test_custom_pointer():
-    prompt = Select("Select an option", ["a", "b", "c"], cursor_pointer=">>")
+    prompt = Select("Select an option:", ["a", "b", "c"], cursor_pointer=">>")
     model = SingleSelectionModel(prompt.options)
 
     expected = """
@@ -179,7 +179,7 @@ def test_custom_pointer():
 
 
 def test_that_hint_is_hidden():
-    prompt = Select("Select an option", ["a", "b", "c"], show_hint=False)
+    prompt = Select("Select an option:", ["a", "b", "c"], show_hint=False)
     model = SingleSelectionModel(prompt.options)
 
     expected = """
@@ -194,7 +194,7 @@ def test_that_hint_is_hidden():
 
 
 def test_that_10_or_more_options_are_aligned():
-    prompt = Select("Select an option", [f"Option {i}" for i in range(1, 11)])
+    prompt = Select("Select an option:", [f"Option {i}" for i in range(1, 11)])
     model = SingleSelectionModel(prompt.options)
 
     expected = """
@@ -219,7 +219,7 @@ def test_that_10_or_more_options_are_aligned():
 
 def test_style():
     prompt = Select(
-        "Select an option",
+        "Select an option:",
         [
             Option("a", description="The first option"),
             Option("b", description="The second option"),

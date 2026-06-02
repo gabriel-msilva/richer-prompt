@@ -52,9 +52,9 @@ class SingleSelectRenderer:
     def render(self, model: SingleSelectionModel) -> Group:
         rows: list[Text] = []
 
-        message = self.message.copy().append(":")
-        rows.append(message)
-        rows.append(Text())
+        if self.message:
+            rows.append(self.message)
+            rows.append(Text())
 
         max_number_length = len(str(len(model.options)))
 
@@ -100,10 +100,10 @@ class SingleSelectRenderer:
         return Group(*rows)
 
     def get_answer(self, model: SingleSelectionModel) -> Text:
-        return (
-            self.message.copy()
-            .append(": ")
-            .append(model.current.display, style="richer_prompt.cursor")
+        message = self.message.copy()
+
+        return Text.assemble(
+            message, " ", (model.current.display, "richer_prompt.cursor")
         )
 
 
@@ -124,9 +124,9 @@ class MultiSelectRenderer:
     def render(self, model: MultiSelectionModel) -> Group:
         rows: list[Text] = []
 
-        message = self.message.copy().append(":")
-        rows.append(message)
-        rows.append(Text())
+        if self.message:
+            rows.append(self.message)
+            rows.append(Text())
 
         max_number_length = len(str(len(model.options)))
 
@@ -196,13 +196,13 @@ class MultiSelectRenderer:
         return Group(*rows)
 
     def get_answer(self, model: MultiSelectionModel) -> Text:
-        message = self.message.copy().append(": ")
+        message = self.message.copy()
 
         values = ", ".join(x.display for x in model.selected_values)
         if values:
-            return message.append(values, style="richer_prompt.cursor")
+            return Text.assemble(message, " ", (values, "richer_prompt.cursor"))
 
-        return message.append("(none)", style="richer_prompt.description")
+        return Text.assemble(message, " ", ("(none)", "richer_prompt.description"))
 
 
 class TabsRenderer:
@@ -213,8 +213,7 @@ class TabsRenderer:
         rows: list[Text] = []
 
         if self.message:
-            message = self.message.copy().append(":")
-            rows.append(message)
+            rows.append(self.message)
             rows.append(Text())
 
         tabs = Text()
@@ -245,10 +244,10 @@ class TabsRenderer:
         return Group(*rows)
 
     def get_answer(self, model: SingleSelectionModel) -> Text:
-        return (
-            self.message.copy()
-            .append(": ")
-            .append(model.current.display, style="richer_prompt.cursor")
+        message = self.message.copy()
+
+        return Text.assemble(
+            message, " ", Text(model.current.display, style="richer_prompt.cursor")
         )
 
 

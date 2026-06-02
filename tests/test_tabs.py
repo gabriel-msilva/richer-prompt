@@ -11,7 +11,7 @@ from tests.utils import assert_snapshot, simulate
 
 @pytest.fixture
 def tabs(console) -> Tabs:
-    return Tabs("Select an option", ["a", "b", "c"], console=console)
+    return Tabs("Select an option:", ["a", "b", "c"], console=console)
 
 
 def test_that_option_is_selected(tabs: Tabs):
@@ -77,7 +77,7 @@ def test_ask():
         "richer_prompt.models.readchar.readkey",
         side_effect=[readchar.key.RIGHT, readchar.key.ENTER],
     ):
-        assert Tabs.ask("Select an option", ["a", "b", "c"], index=1) == "c"
+        assert Tabs.ask("Select an option:", ["a", "b", "c"], index=1) == "c"
 
 
 def test_that_answer_is_rendered(tabs: Tabs):
@@ -102,7 +102,7 @@ def test_that_str_options_are_rendered(tabs: Tabs):
 
 def test_that_labels_and_descriptions_are_rendered():
     prompt = Tabs(
-        "Select an option",
+        "Select an option:",
         [
             Option("a", label="Option A"),
             Option("b", description="The second option"),
@@ -135,7 +135,7 @@ def test_that_labels_and_descriptions_are_rendered():
 
 def test_style():
     prompt = Tabs(
-        "Select an option",
+        "Select an option:",
         [
             Option("a", description="The first option"),
             Option("b", description="The second option"),
