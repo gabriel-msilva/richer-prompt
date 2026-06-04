@@ -14,6 +14,33 @@ T = TypeVar("T")
 
 
 class Select(Generic[T]):
+    """
+    Select a single option from a vertical list.
+
+    Parameters
+    ----------
+    message: str or rich.text.Text
+        The message to display above the options.
+    options: iterable of T or Option[T]
+        The values to choose from.
+        Each option can be a raw value or an instance of `Option`,
+        which allows customization of labels and descriptions.
+    cursor_pointer: str, default "❯"
+        The string to use as the cursor pointer.
+    numbered: bool, default True
+        Whether to display numbers next to the options.
+    show_hint: bool, default True
+        Whether to show a hint about how to select options.
+    console: rich.console.Console, optional
+        A ``Console`` instance.
+        If None, use the global console.
+
+    Examples
+    --------
+    >>> prompt = Select("Choose a color:", ["Red", "Green", "Blue"])
+    >>> color = prompt()
+    """
+
     def __init__(
         self,
         message: TextType,
@@ -49,6 +76,33 @@ class Select(Generic[T]):
         show_hint: bool = True,
         console: Console | None = None,
     ) -> T:
+        """
+        Shortcut to construct and run a prompt loop and return the result.
+
+        Parameters
+        ----------
+        message: str or rich.text.Text
+            The message to display above the options.
+        options: iterable of T or Option[T]
+            The values to choose from.
+            Each option can be a raw value or an instance of `Option`,
+            which allows customization of labels and descriptions.
+        index: int, default 0
+            The index of the option to have the cursor start on.
+        cursor_pointer: str, default "❯"
+            The string to use as the cursor pointer.
+        numbered: bool, default True
+            Whether to display numbers next to the options.
+        show_hint: bool, default True
+            Whether to show a hint about how to select options.
+        console: rich.console.Console, optional
+            A ``Console`` instance.
+            If None, use the global console.
+
+        Examples
+        --------
+        >>> color = Select.ask("Choose a color:", ["Red", "Green", "Blue"])
+        """
         return cls(
             message,
             options,
@@ -59,6 +113,14 @@ class Select(Generic[T]):
         )(index=index)
 
     def __call__(self, index: int = 0) -> T:
+        """
+        Run the prompt loop.
+
+        Parameters
+        ----------
+        index: int, default 0
+            The index of the option to select by default.
+        """
         session = SingleSelectSession(
             model=SingleSelectionModel(self.options, cursor=index),
             renderer=self.renderer,

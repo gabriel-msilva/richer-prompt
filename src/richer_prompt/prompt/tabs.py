@@ -14,6 +14,27 @@ T = TypeVar("T")
 
 
 class Tabs(Generic[T]):
+    """
+    Select a single option from a horizontal list.
+
+    Parameters
+    ----------
+    message: str or rich.text.Text
+        The message to display above the options.
+    options: iterable of T or Option[T]
+        The values to choose from.
+        Each option can be a raw value or an instance of `Option`,
+        which allows customization of labels and descriptions.
+    console: rich.console.Console, optional
+        A ``Console`` instance.
+        If None, use the global console.
+
+    Examples
+    --------
+    >>> prompt = Tabs("Choose a color:", ["Red", "Green", "Blue"])
+    >>> color = prompt()
+    """
+
     def __init__(
         self,
         message: TextType,
@@ -37,6 +58,27 @@ class Tabs(Generic[T]):
         index: int = 0,
         console: Console | None = None,
     ) -> T:
+        """
+        Shortcut to construct and run a prompt loop and return the result.
+
+        Parameters
+        ----------
+        message: str or rich.text.Text
+            The message to display above the options.
+        options: iterable of T or Option[T]
+            The values to choose from.
+            Each option can be a raw value or an instance of `Option`,
+            which allows customization of labels and descriptions.
+        index: int, default 0
+            The index of the option to have the cursor start on.
+        console: rich.console.Console, optional
+            A ``Console`` instance.
+            If None, use the global console.
+
+        Examples
+        --------
+        >>> color = Tabs.ask("Choose a color:", ["Red", "Green", "Blue"])
+        """
         return cls(
             message,
             options,
@@ -44,6 +86,14 @@ class Tabs(Generic[T]):
         )(index=index)
 
     def __call__(self, index: int = 0) -> T:
+        """
+        Run the prompt loop.
+
+        Parameters
+        ----------
+        index: int, default 0
+            The index of the option to select by default.
+        """
         session = TabsSelectSession(
             model=TabsSelectionModel(self.options, cursor=index),
             renderer=self.renderer,
