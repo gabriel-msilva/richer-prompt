@@ -14,6 +14,33 @@ T = TypeVar("T")
 
 
 class MultiSelect(Generic[T]):
+    """
+    Select multiple options from a vertical list.
+
+    Parameters
+    ----------
+    message: str or rich.text.Text
+        The message to display above the options.
+    options: iterable of T or Option[T]
+        The values to choose from.
+        Each option can be a raw value or an instance of `Option`,
+        which allows customization of labels and descriptions.
+    cursor_pointer: str, default "❯"
+        The string to use as the cursor pointer.
+    numbered: bool, default True
+        Whether to display numbers next to the options.
+    show_hint: bool, default True
+        Whether to show a hint about how to select options.
+    console: rich.console.Console, optional
+        A ``Console`` instance.
+        If None, use the global console.
+
+    Examples
+    --------
+    >>> prompt = MultiSelect("Choose colors:", ["Red", "Green", "Blue"])
+    >>> colors = prompt()
+    """
+
     def __init__(
         self,
         message: TextType,
@@ -52,6 +79,35 @@ class MultiSelect(Generic[T]):
         show_hint: bool = True,
         console: Console | None = None,
     ) -> list[T]:
+        """
+        Shortcut to construct and run a prompt loop and return the result.
+
+        Parameters
+        ----------
+        message: str or rich.text.Text
+            The message to display above the options.
+        options: iterable of T or Option[T]
+            The values to choose from.
+            Each option can be a raw value or an instance of `Option`,
+            which allows customization of labels and descriptions.
+        index: int, default 0
+            The index of the option to have the cursor start on.
+        default: set of int, optional
+            A set of indices of options that should be selected by default.
+        cursor_pointer: str, default "❯"
+            The string to use as the cursor pointer.
+        numbered: bool, default True
+            Whether to display numbers next to the options.
+        show_hint: bool, default True
+            Whether to show a hint about how to select options.
+        console: rich.console.Console, optional
+            A ``Console`` instance.
+            If None, use the global console.
+
+        Examples
+        --------
+        >>> colors = MultiSelect.ask("Choose colors:", ["Red", "Green", "Blue"])
+        """
         return cls(
             message,
             options,
@@ -62,6 +118,17 @@ class MultiSelect(Generic[T]):
         )(index=index, default=default)
 
     def __call__(self, index: int = 0, default: set[int] | None = None) -> list[T]:
+        """
+        Run the prompt loop.
+
+        Parameters
+        ----------
+        index: int, default 0
+            The index of the option to have the cursor start on.
+        default: set of int, optional
+            A set of indices of options that should be selected by default.
+        """
+
         default = default or set()
 
         session = MultiSelectSession(
