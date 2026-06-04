@@ -3,18 +3,18 @@ from unittest.mock import patch
 import pytest
 import readchar
 
+from richer_prompt.choices import Choice
 from richer_prompt.models import TabsSelectionModel
-from richer_prompt.options import Option
 from richer_prompt.prompt.tabs import Tabs
 from tests.utils import assert_snapshot, simulate
 
 
 @pytest.fixture
 def tabs(console) -> Tabs:
-    return Tabs("Select an option:", ["a", "b", "c"], console=console)
+    return Tabs("Select a choice:", ["a", "b", "c"], console=console)
 
 
-def test_that_option_is_selected(tabs: Tabs):
+def test_that_choice_is_selected(tabs: Tabs):
     result = simulate(
         tabs,
         [
@@ -77,21 +77,21 @@ def test_ask():
         "richer_prompt.models.readchar.readkey",
         side_effect=[readchar.key.RIGHT, readchar.key.ENTER],
     ):
-        assert Tabs.ask("Select an option:", ["a", "b", "c"], index=1) == "c"
+        assert Tabs.ask("Select a choice:", ["a", "b", "c"], index=1) == "c"
 
 
 def test_that_answer_is_rendered(tabs: Tabs):
     with tabs.console.capture() as capture:
         simulate(tabs, [readchar.key.RIGHT, readchar.key.ENTER])
 
-    assert capture.get() == "Select an option: b\n"
+    assert capture.get() == "Select a choice: b\n"
 
 
-def test_that_str_options_are_rendered(tabs: Tabs):
-    model = TabsSelectionModel(tabs.options)
+def test_that_str_choices_are_rendered(tabs: Tabs):
+    model = TabsSelectionModel(tabs.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
     ←  a   b   c  →
 
@@ -102,32 +102,32 @@ def test_that_str_options_are_rendered(tabs: Tabs):
 
 def test_that_labels_and_descriptions_are_rendered():
     prompt = Tabs(
-        "Select an option:",
+        "Select a choice:",
         [
-            Option("a", label="Option A"),
-            Option("b", description="The second option"),
-            Option("c", label="Option C", description="The third option"),
+            Choice("a", label="Choice A"),
+            Choice("b", description="The second choice"),
+            Choice("c", label="Choice C", description="The third choice"),
         ],
     )
 
-    model = TabsSelectionModel(prompt.options)
+    model = TabsSelectionModel(prompt.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
-    ←  Option A   b   Option C  →
+    ←  Choice A   b   Choice C  →
 
     """
 
     assert_snapshot(prompt, model, expected)
 
-    model = TabsSelectionModel(prompt.options, cursor=1)
+    model = TabsSelectionModel(prompt.choices, cursor=1)
 
     expected = """
-    Select an option:
+    Select a choice:
 
-    ←  Option A   b   Option C  →
-    The second option
+    ←  Choice A   b   Choice C  →
+    The second choice
     """
 
     assert_snapshot(prompt, model, expected)
@@ -135,21 +135,21 @@ def test_that_labels_and_descriptions_are_rendered():
 
 def test_style():
     prompt = Tabs(
-        "Select an option:",
+        "Select a choice:",
         [
-            Option("a", description="The first option"),
-            Option("b", description="The second option"),
-            Option("c", description="The third option"),
+            Choice("a", description="The first choice"),
+            Choice("b", description="The second choice"),
+            Choice("c", description="The third choice"),
         ],
     )
 
-    model = TabsSelectionModel(prompt.options)
+    model = TabsSelectionModel(prompt.choices)
 
     expected = """
-    [richer_prompt.title]Select an option:[/]
+    [richer_prompt.title]Select a choice:[/]
 
     [richer_prompt.description]←[/] [richer_prompt.tab.active] a [/]  b   c  →
-    [richer_prompt.description]The first option[/]
+    [richer_prompt.description]The first choice[/]
     """
 
     assert_snapshot(prompt, model, expected, raw=True)

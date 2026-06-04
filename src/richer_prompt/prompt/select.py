@@ -5,8 +5,8 @@ from rich import get_console
 from rich.console import Console
 from rich.text import TextType
 
+from richer_prompt.choices import Choice, ensure_choice
 from richer_prompt.models import SingleSelectionModel
-from richer_prompt.options import Option, ensure_option
 from richer_prompt.renderers import RIGHT_POINTER, SingleSelectRenderer
 from richer_prompt.session import SingleSelectSession
 
@@ -15,22 +15,18 @@ T = TypeVar("T")
 
 class Select(Generic[T]):
     """
-    Select a single option from a vertical list.
+    Select a single choice from a vertical list.
 
     Parameters
     ----------
     message: str or rich.text.Text
-        The message to display above the options.
-    options: iterable of T or Option[T]
+        The message to display above the choices.
+    choices: iterable of T or Choice[T]
         The values to choose from.
-        Each option can be a raw value or an instance of `Option`,
-        which allows customization of labels and descriptions.
-    cursor_pointer: str, default "❯"
-        The string to use as the cursor pointer.
-    numbered: bool, default True
-        Whether to display numbers next to the options.
+        Each choice can be a raw value or an instance of :py:class:`Choice`,
+        Whether to display numbers next to the choices.
     show_hint: bool, default True
-        Whether to show a hint about how to select options.
+        Whether to show a hint about how to select choices.
     console: rich.console.Console, optional
         A ``Console`` instance.
         If None, use the global console.
@@ -44,16 +40,16 @@ class Select(Generic[T]):
     def __init__(
         self,
         message: TextType,
-        options: Iterable[Option[T] | T],
+        choices: Iterable[Choice[T] | T],
         *,
         cursor_pointer: str = RIGHT_POINTER,
         numbered: bool = True,
         show_hint: bool = True,
         console: Console | None = None,
     ):
-        self.options: list[Option[T]] = [ensure_option(option) for option in options]
-        if not self.options:
-            raise ValueError("options cannot be empty")
+        self.choices: list[Choice[T]] = [ensure_choice(choice) for choice in choices]
+        if not self.choices:
+            raise ValueError("choices cannot be empty")
 
         self.renderer = SingleSelectRenderer(
             message,
@@ -68,7 +64,7 @@ class Select(Generic[T]):
     def ask(
         cls,
         message: TextType,
-        options: Iterable[T],
+        choices: Iterable[T],
         *,
         index: int = 0,
         cursor_pointer: str = RIGHT_POINTER,
@@ -82,19 +78,19 @@ class Select(Generic[T]):
         Parameters
         ----------
         message: str or rich.text.Text
-            The message to display above the options.
-        options: iterable of T or Option[T]
+            The message to display above the choices.
+        choices: iterable of T or Choice[T]
             The values to choose from.
-            Each option can be a raw value or an instance of `Option`,
+            Each choice can be a raw value or an instance of :py:class:`Choice`,
             which allows customization of labels and descriptions.
         index: int, default 0
-            The index of the option to have the cursor start on.
+            The index of the choice to have the cursor start on.
         cursor_pointer: str, default "❯"
             The string to use as the cursor pointer.
         numbered: bool, default True
-            Whether to display numbers next to the options.
+            Whether to display numbers next to the choices.
         show_hint: bool, default True
-            Whether to show a hint about how to select options.
+            Whether to show a hint about how to select choices.
         console: rich.console.Console, optional
             A ``Console`` instance.
             If None, use the global console.
@@ -105,7 +101,7 @@ class Select(Generic[T]):
         """
         return cls(
             message,
-            options,
+            choices,
             cursor_pointer=cursor_pointer,
             numbered=numbered,
             show_hint=show_hint,
@@ -119,10 +115,10 @@ class Select(Generic[T]):
         Parameters
         ----------
         index: int, default 0
-            The index of the option to select by default.
+            The index of the choice to select by default.
         """
         session = SingleSelectSession(
-            model=SingleSelectionModel(self.options, cursor=index),
+            model=SingleSelectionModel(self.choices, cursor=index),
             renderer=self.renderer,
             console=self.console,
         )

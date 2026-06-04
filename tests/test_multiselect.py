@@ -3,18 +3,18 @@ from unittest.mock import patch
 import pytest
 import readchar
 
+from richer_prompt.choices import Choice
 from richer_prompt.models import MultiSelectionModel
-from richer_prompt.options import Option
 from richer_prompt.prompt.multiselect import MultiSelect
 from tests.utils import assert_snapshot, simulate
 
 
 @pytest.fixture
 def multiselect(console) -> MultiSelect:
-    return MultiSelect("Select multiple options:", ["a", "b", "c"], console=console)
+    return MultiSelect("Select multiple choices:", ["a", "b", "c"], console=console)
 
 
-def test_that_options_are_selected(multiselect: MultiSelect):
+def test_that_choices_are_selected(multiselect: MultiSelect):
     result = simulate(
         multiselect,
         [
@@ -30,7 +30,7 @@ def test_that_options_are_selected(multiselect: MultiSelect):
     assert result == ["a", "c"]
 
 
-def test_that_options_can_be_unselected(multiselect: MultiSelect):
+def test_that_choices_can_be_unselected(multiselect: MultiSelect):
     result = simulate(
         multiselect,
         [
@@ -182,14 +182,14 @@ def test_that_answer_is_rendered(multiselect: MultiSelect):
             ],
         )
 
-    assert capture.get() == "Select multiple options: a, c\n"
+    assert capture.get() == "Select multiple choices: a, c\n"
 
 
-def test_that_str_options_are_rendered(multiselect: MultiSelect):
-    model = MultiSelectionModel(multiselect.options)
+def test_that_str_choices_are_rendered(multiselect: MultiSelect):
+    model = MultiSelectionModel(multiselect.choices)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
     ❯ 1. [ ] a
       2. [ ] b
@@ -204,22 +204,22 @@ def test_that_str_options_are_rendered(multiselect: MultiSelect):
 
 def test_that_labels_and_descriptions_are_rendered():
     prompt = MultiSelect(
-        "Select multiple options:",
+        "Select multiple choices:",
         [
-            Option(value="a", label="Option A"),
-            Option(value="b", description="The second option"),
-            Option(value="c", label="Option C", description="The third option"),
+            Choice(value="a", label="Choice A"),
+            Choice(value="b", description="The second choice"),
+            Choice(value="c", label="Choice C", description="The third choice"),
         ],
     )
 
-    model = MultiSelectionModel(prompt.options)
+    model = MultiSelectionModel(prompt.choices)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
-    ❯ 1. [ ] Option A
-      2. [ ] b  The second option
-      3. [ ] Option C  The third option
+    ❯ 1. [ ] Choice A
+      2. [ ] b  The second choice
+      3. [ ] Choice C  The third choice
          Submit
 
     ↑↓ to navigate · Enter to select · Submit to finish
@@ -228,12 +228,12 @@ def test_that_labels_and_descriptions_are_rendered():
     assert_snapshot(prompt, model, expected)
 
 
-def test_that_options_are_rendered_without_numbers():
-    prompt = MultiSelect("Select multiple options:", ["a", "b", "c"], numbered=False)
-    model = MultiSelectionModel(prompt.options)
+def test_that_choices_are_rendered_without_numbers():
+    prompt = MultiSelect("Select multiple choices:", ["a", "b", "c"], numbered=False)
+    model = MultiSelectionModel(prompt.choices)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
     ❯ [ ] a
       [ ] b
@@ -247,10 +247,10 @@ def test_that_options_are_rendered_without_numbers():
 
 
 def test_that_cursor_pointer_moves(multiselect: MultiSelect):
-    model = MultiSelectionModel(multiselect.options, cursor=1)
+    model = MultiSelectionModel(multiselect.choices, cursor=1)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
       1. [ ] a
     ❯ 2. [ ] b
@@ -264,10 +264,10 @@ def test_that_cursor_pointer_moves(multiselect: MultiSelect):
 
 
 def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
-    model = MultiSelectionModel(multiselect.options, selected={0, 2})
+    model = MultiSelectionModel(multiselect.choices, selected={0, 2})
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
     ❯ 1. [✓] a
       2. [ ] b
@@ -282,12 +282,12 @@ def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
 
 def test_custom_pointer():
     multiselect = MultiSelect(
-        "Select multiple options:", ["a", "b", "c"], cursor_pointer=">>"
+        "Select multiple choices:", ["a", "b", "c"], cursor_pointer=">>"
     )
-    model = MultiSelectionModel(multiselect.options)
+    model = MultiSelectionModel(multiselect.choices)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
     >> 1. [ ] a
        2. [ ] b
@@ -301,11 +301,11 @@ def test_custom_pointer():
 
 
 def test_that_hint_is_hidden():
-    prompt = MultiSelect("Select multiple options:", ["a", "b", "c"], show_hint=False)
-    model = MultiSelectionModel(prompt.options)
+    prompt = MultiSelect("Select multiple choices:", ["a", "b", "c"], show_hint=False)
+    model = MultiSelectionModel(prompt.choices)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
     ❯ 1. [ ] a
       2. [ ] b
@@ -316,25 +316,25 @@ def test_that_hint_is_hidden():
     assert_snapshot(prompt, model, expected)
 
 
-def test_that_10_or_more_options_are_aligned():
+def test_that_10_or_more_choices_are_aligned():
     prompt = MultiSelect(
-        "Select multiple options:", [f"Option {i}" for i in range(1, 11)]
+        "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)]
     )
-    model = MultiSelectionModel(prompt.options)
+    model = MultiSelectionModel(prompt.choices)
 
     expected = """
-    Select multiple options:
+    Select multiple choices:
 
-    ❯  1. [ ] Option 1
-       2. [ ] Option 2
-       3. [ ] Option 3
-       4. [ ] Option 4
-       5. [ ] Option 5
-       6. [ ] Option 6
-       7. [ ] Option 7
-       8. [ ] Option 8
-       9. [ ] Option 9
-      10. [ ] Option 10
+    ❯  1. [ ] Choice 1
+       2. [ ] Choice 2
+       3. [ ] Choice 3
+       4. [ ] Choice 4
+       5. [ ] Choice 5
+       6. [ ] Choice 6
+       7. [ ] Choice 7
+       8. [ ] Choice 8
+       9. [ ] Choice 9
+      10. [ ] Choice 10
           Submit
 
     ↑↓ to navigate · Enter to select · Submit to finish
@@ -345,21 +345,21 @@ def test_that_10_or_more_options_are_aligned():
 
 def test_style():
     prompt = MultiSelect(
-        "Select multiple options:",
+        "Select multiple choices:",
         [
-            Option("a", description="The first option"),
-            Option("b", description="The second option"),
-            Option("c", description="The third option"),
+            Choice("a", description="The first choice"),
+            Choice("b", description="The second choice"),
+            Choice("c", description="The third choice"),
         ],
     )
 
-    model = MultiSelectionModel(prompt.options, selected={0})
+    model = MultiSelectionModel(prompt.choices, selected={0})
     expected = """
-    [richer_prompt.title]Select multiple options:[/]
+    [richer_prompt.title]Select multiple choices:[/]
 
-    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.checkbox.checked][✓][/] [richer_prompt.cursor]a[/]  [richer_prompt.description]The first option[/]
-      [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second option[/]
-      [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third option[/]
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.checkbox.checked][✓][/] [richer_prompt.cursor]a[/]  [richer_prompt.description]The first choice[/]
+      [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second choice[/]
+      [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third choice[/]
          Submit
 
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
@@ -367,13 +367,13 @@ def test_style():
 
     assert_snapshot(prompt, model, expected, raw=True)
 
-    model = MultiSelectionModel(prompt.options, cursor=3)
+    model = MultiSelectionModel(prompt.choices, cursor=3)
     expected = """
-    [richer_prompt.title]Select multiple options:[/]
+    [richer_prompt.title]Select multiple choices:[/]
 
-      [richer_prompt.description]1. [/][ ] a  [richer_prompt.description]The first option[/]
-      [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second option[/]
-      [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third option[/]
+      [richer_prompt.description]1. [/][ ] a  [richer_prompt.description]The first choice[/]
+      [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second choice[/]
+      [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third choice[/]
     [richer_prompt.cursor]❯[/]    [richer_prompt.cursor]Submit[/]
 
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]

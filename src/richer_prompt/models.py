@@ -3,17 +3,17 @@ from typing import Generic, TypeVar
 
 import readchar
 
-from richer_prompt.options import Option
+from richer_prompt.choices import Choice
 
 T = TypeVar("T")
 
 
 class SelectionModel(ABC, Generic[T]):
-    def __init__(self, options: list[Option[T]], cursor: int = 0):
-        if cursor < 0 or cursor >= len(options):
+    def __init__(self, choices: list[Choice[T]], cursor: int = 0):
+        if cursor < 0 or cursor >= len(choices):
             raise ValueError(f"Index '{cursor}' is out of range")
 
-        self.options = options
+        self.choices = choices
         self.cursor = cursor
         self._submitted = False
 
@@ -30,11 +30,11 @@ class SelectionModel(ABC, Generic[T]):
 
 class SingleSelectionModel(SelectionModel[T]):
     @property
-    def current(self) -> Option[T]:
-        return self.options[self.cursor]
+    def current(self) -> Choice[T]:
+        return self.choices[self.cursor]
 
     def move(self, delta: int) -> None:
-        self.cursor = (self.cursor + delta) % len(self.options)
+        self.cursor = (self.cursor + delta) % len(self.choices)
 
     def handle_key(self, key: str) -> None:
         match key:
@@ -46,7 +46,7 @@ class SingleSelectionModel(SelectionModel[T]):
                 self.submit()
             case _ if key.isdigit():
                 n = int(key) - 1
-                if 0 <= n < len(self.options):
+                if 0 <= n < len(self.choices):
                     self.cursor = n
                     self.submit()
 
@@ -54,31 +54,31 @@ class SingleSelectionModel(SelectionModel[T]):
 class MultiSelectionModel(SelectionModel[T]):
     def __init__(
         self,
-        options: list[Option[T]],
+        choices: list[Choice[T]],
         cursor: int = 0,
         selected: set[int] | None = None,
     ):
         selected = set(selected or [])
 
         # may point to the submit button
-        if cursor < 0 or cursor > len(options):
+        if cursor < 0 or cursor > len(choices):
             raise ValueError(f"Index '{cursor}' is out of range")
 
-        offenders = [x for x in selected if x < 0 or x >= len(options)]
+        offenders = [x for x in selected if x < 0 or x >= len(choices)]
         if offenders:
             raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
 
-        self.options = options
+        self.choices = choices
         self.cursor = cursor
         self.selected = set(selected)
         self._submitted = False
 
     @property
-    def selected_values(self) -> list[Option[T]]:
-        return [self.options[i] for i in sorted(self.selected)]
+    def selected_values(self) -> list[Choice[T]]:
+        return [self.choices[i] for i in sorted(self.selected)]
 
     def move(self, delta: int):
-        total_rows = len(self.options) + 1
+        total_rows = len(self.choices) + 1
         self.cursor = (self.cursor + delta) % total_rows
 
     def toggle(self):
@@ -99,22 +99,22 @@ class MultiSelectionModel(SelectionModel[T]):
                 self.toggle()
             case _ if key.isdigit():
                 n = int(key) - 1
-                if 0 <= n < len(self.options):
+                if 0 <= n < len(self.choices):
                     self.cursor = n
                     self.toggle()
 
     def is_on_submit(self) -> bool:
-        return self.cursor == len(self.options)
+        return self.cursor == len(self.choices)
 
 
 class TabsSelectionModel(SelectionModel[T]):
     @property
-    def current(self) -> Option[T]:
-        return self.options[self.cursor]
+    def current(self) -> Choice[T]:
+        return self.choices[self.cursor]
 
     def move(self, delta: int) -> None:
         cursor = self.cursor + delta
-        cursor = max(0, min(len(self.options) - 1, cursor))
+        cursor = max(0, min(len(self.choices) - 1, cursor))
 
         self.cursor = cursor
 

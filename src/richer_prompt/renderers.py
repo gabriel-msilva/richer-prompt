@@ -8,6 +8,7 @@ from richer_prompt.models import (
     MultiSelectionModel,
     SelectionModel,
     SingleSelectionModel,
+    TabsSelectionModel,
 )
 
 LEFT_POINTER: Final = "❮"
@@ -56,9 +57,9 @@ class SingleSelectRenderer:
             rows.append(self.message)
             rows.append(Text())
 
-        max_number_length = len(str(len(model.options)))
+        max_number_length = len(str(len(model.choices)))
 
-        for i, option in enumerate(model.options):
+        for i, choice in enumerate(model.choices):
             is_focused = i == model.cursor
 
             cursor = (
@@ -77,14 +78,14 @@ class SingleSelectRenderer:
             )
 
             label = Text(
-                option.display,
-                style="richer_prompt.cursor" if is_focused else "richer_prompt.option",
+                choice.display,
+                style="richer_prompt.cursor" if is_focused else "richer_prompt.choice",
             )
 
             row = Text.assemble(cursor, " ", number, label)
-            if option.description:
+            if choice.description:
                 row.append("  ")
-                row.append(option.description, style="richer_prompt.description")
+                row.append(choice.description, style="richer_prompt.description")
 
             rows.append(row)
 
@@ -128,9 +129,9 @@ class MultiSelectRenderer:
             rows.append(self.message)
             rows.append(Text())
 
-        max_number_length = len(str(len(model.options)))
+        max_number_length = len(str(len(model.choices)))
 
-        for i, option in enumerate(model.options):
+        for i, choice in enumerate(model.choices):
             is_focused = i == model.cursor
             is_selected = i in model.selected
 
@@ -156,15 +157,15 @@ class MultiSelectRenderer:
             )
 
             label = Text(
-                option.display,
-                style="richer_prompt.cursor" if is_focused else "richer_prompt.option",
+                choice.display,
+                style="richer_prompt.cursor" if is_focused else "richer_prompt.choice",
             )
 
             row = Text.assemble(cursor, " ", number, checkbox, " ", label)
 
-            if option.description:
+            if choice.description:
                 row.append("  ")
-                row.append(option.description, style="richer_prompt.description")
+                row.append(choice.description, style="richer_prompt.description")
 
             rows.append(row)
 
@@ -177,7 +178,7 @@ class MultiSelectRenderer:
             "Submit",
             style="richer_prompt.cursor"
             if model.is_on_submit()
-            else "richer_prompt.option",
+            else "richer_prompt.choice",
         )
         padding = " " * (max_number_length + 2) if self.numbered else ""
 
@@ -209,7 +210,7 @@ class TabsRenderer:
     def __init__(self, message: TextType):
         self.message = ensure_text(message, default_style="richer_prompt.title")
 
-    def render(self, model: SingleSelectionModel) -> Group:
+    def render(self, model: TabsSelectionModel) -> Group:
         rows: list[Text] = []
 
         if self.message:
@@ -221,21 +222,21 @@ class TabsRenderer:
         tabs.append(LEFT_ARROW, style="dim" if model.cursor == 0 else "")
         tabs.append(" ")
 
-        for i, option in enumerate(model.options):
+        for i, choice in enumerate(model.choices):
             if i > 0:
                 tabs.append(" ")
 
             is_focused = i == model.cursor
 
             tabs.append(
-                f" {option.display} ",
+                f" {choice.display} ",
                 style="richer_prompt.tab.active" if is_focused else "richer_prompt.tab",
             )
 
         tabs.append(" ")
         tabs.append(
             RIGHT_ARROW,
-            style="dim" if model.cursor == len(model.options) - 1 else "",
+            style="dim" if model.cursor == len(model.choices) - 1 else "",
         )
 
         rows.append(tabs)

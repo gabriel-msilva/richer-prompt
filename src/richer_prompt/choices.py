@@ -5,19 +5,19 @@ T = TypeVar("T")
 
 
 @dataclass(frozen=True, slots=True)
-class Option(Generic[T]):
+class Choice(Generic[T]):
     """
-    A selectable option used by prompt classes.
+    A selectable choice used by prompt classes.
 
     Parameters
     ----------
     value: T
-        The option value returned when selected.
+        The choice value returned when selected.
     label: str, optional
-        The label to display for the option.
+        The label to display for the choice.
         If not provided, the value is used as the label.
     description: str, optional
-        Additional text to describe the option.
+        Additional text to describe the choice.
     """
 
     value: T
@@ -26,9 +26,9 @@ class Option(Generic[T]):
 
     @property
     def display(self) -> str:
-        """Get the display string for the option."""
+        """Get the display string for the choice."""
         return self.label or str(self.value)
 
 
-def ensure_option(value: T | Option[T]) -> Option[T]:
-    return value if isinstance(value, Option) else Option(value)
+def ensure_choice(value: T | Choice[T]) -> Choice[T]:
+    return value if isinstance(value, Choice) else Choice(value)
