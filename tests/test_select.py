@@ -3,18 +3,18 @@ from unittest.mock import patch
 import pytest
 import readchar
 
+from richer_prompt.choices import Choice
 from richer_prompt.models import SingleSelectionModel
-from richer_prompt.options import Option
 from richer_prompt.prompt.select import Select
 from tests.utils import assert_snapshot, simulate
 
 
 @pytest.fixture
 def select(console) -> Select:
-    return Select("Select an option:", ["a", "b", "c"], console=console)
+    return Select("Select a choice:", ["a", "b", "c"], console=console)
 
 
-def test_that_option_is_selected(select: Select):
+def test_that_choice_is_selected(select: Select):
     result = simulate(
         select,
         [
@@ -35,7 +35,7 @@ def test_that_option_is_selected(select: Select):
         (1, "a"),
         (2, "b"),
         (3, "c"),
-        (4, "a"),  # Out of range rolls over to first option
+        (4, "a"),  # Out of range rolls over to first choice
     ],
 )
 def test_that_number_key_selects(select: Select, number: int, expected: str):
@@ -77,21 +77,21 @@ def test_ask():
         "richer_prompt.models.readchar.readkey",
         side_effect=[readchar.key.UP, readchar.key.ENTER],
     ):
-        assert Select.ask("Select an option:", ["a", "b", "c"], index=1) == "a"
+        assert Select.ask("Select a choice:", ["a", "b", "c"], index=1) == "a"
 
 
 def test_that_answer_is_rendered(select: Select):
     with select.console.capture() as capture:
         simulate(select, [readchar.key.DOWN, readchar.key.ENTER])
 
-    assert capture.get() == "Select an option: b\n"
+    assert capture.get() == "Select a choice: b\n"
 
 
-def test_that_str_options_are_rendered(select: Select):
-    model = SingleSelectionModel(select.options)
+def test_that_str_choices_are_rendered(select: Select):
+    model = SingleSelectionModel(select.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
     ❯ 1. a
       2. b
@@ -105,22 +105,22 @@ def test_that_str_options_are_rendered(select: Select):
 
 def test_that_labels_and_descriptions_are_rendered():
     prompt = Select(
-        "Select an option:",
+        "Select a choice:",
         [
-            Option(value="a", label="Option A"),
-            Option(value="b", description="The second option"),
-            Option(value="c", label="Option C", description="The third option"),
+            Choice(value="a", label="Choice A"),
+            Choice(value="b", description="The second choice"),
+            Choice(value="c", label="Choice C", description="The third choice"),
         ],
     )
 
-    model = SingleSelectionModel(prompt.options)
+    model = SingleSelectionModel(prompt.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
-    ❯ 1. Option A
-      2. b  The second option
-      3. Option C  The third option
+    ❯ 1. Choice A
+      2. b  The second choice
+      3. Choice C  The third choice
 
     ↑↓ to navigate · Enter to select
     """
@@ -128,12 +128,12 @@ def test_that_labels_and_descriptions_are_rendered():
     assert_snapshot(prompt, model, expected)
 
 
-def test_that_options_are_rendered_without_numbers():
-    select = Select("Select an option:", ["a", "b", "c"], numbered=False)
-    model = SingleSelectionModel(select.options)
+def test_that_choices_are_rendered_without_numbers():
+    select = Select("Select a choice:", ["a", "b", "c"], numbered=False)
+    model = SingleSelectionModel(select.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
     ❯ a
       b
@@ -146,10 +146,10 @@ def test_that_options_are_rendered_without_numbers():
 
 
 def test_that_cursor_pointer_moves(select: Select):
-    model = SingleSelectionModel(select.options, cursor=1)
+    model = SingleSelectionModel(select.choices, cursor=1)
 
     expected = """
-    Select an option:
+    Select a choice:
 
       1. a
     ❯ 2. b
@@ -162,11 +162,11 @@ def test_that_cursor_pointer_moves(select: Select):
 
 
 def test_custom_pointer():
-    prompt = Select("Select an option:", ["a", "b", "c"], cursor_pointer=">>")
-    model = SingleSelectionModel(prompt.options)
+    prompt = Select("Select a choice:", ["a", "b", "c"], cursor_pointer=">>")
+    model = SingleSelectionModel(prompt.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
     >> 1. a
        2. b
@@ -179,11 +179,11 @@ def test_custom_pointer():
 
 
 def test_that_hint_is_hidden():
-    prompt = Select("Select an option:", ["a", "b", "c"], show_hint=False)
-    model = SingleSelectionModel(prompt.options)
+    prompt = Select("Select a choice:", ["a", "b", "c"], show_hint=False)
+    model = SingleSelectionModel(prompt.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
     ❯ 1. a
       2. b
@@ -193,23 +193,23 @@ def test_that_hint_is_hidden():
     assert_snapshot(prompt, model, expected)
 
 
-def test_that_10_or_more_options_are_aligned():
-    prompt = Select("Select an option:", [f"Option {i}" for i in range(1, 11)])
-    model = SingleSelectionModel(prompt.options)
+def test_that_10_or_more_choices_are_aligned():
+    prompt = Select("Select a choice:", [f"Choice {i}" for i in range(1, 11)])
+    model = SingleSelectionModel(prompt.choices)
 
     expected = """
-    Select an option:
+    Select a choice:
 
-    ❯  1. Option 1
-       2. Option 2
-       3. Option 3
-       4. Option 4
-       5. Option 5
-       6. Option 6
-       7. Option 7
-       8. Option 8
-       9. Option 9
-      10. Option 10
+    ❯  1. Choice 1
+       2. Choice 2
+       3. Choice 3
+       4. Choice 4
+       5. Choice 5
+       6. Choice 6
+       7. Choice 7
+       8. Choice 8
+       9. Choice 9
+      10. Choice 10
 
     ↑↓ to navigate · Enter to select
     """
@@ -219,22 +219,22 @@ def test_that_10_or_more_options_are_aligned():
 
 def test_style():
     prompt = Select(
-        "Select an option:",
+        "Select a choice:",
         [
-            Option("a", description="The first option"),
-            Option("b", description="The second option"),
-            Option("c", description="The third option"),
+            Choice("a", description="The first choice"),
+            Choice("b", description="The second choice"),
+            Choice("c", description="The third choice"),
         ],
     )
 
-    model = SingleSelectionModel(prompt.options)
+    model = SingleSelectionModel(prompt.choices)
 
     expected = """
-    [richer_prompt.title]Select an option:[/]
+    [richer_prompt.title]Select a choice:[/]
 
-    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.cursor]a[/]  [richer_prompt.description]The first option[/]
-      [richer_prompt.description]2. [/][richer_prompt.option]b[/]  [richer_prompt.description]The second option[/]
-      [richer_prompt.description]3. [/][richer_prompt.option]c[/]  [richer_prompt.description]The third option[/]
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.cursor]a[/]  [richer_prompt.description]The first choice[/]
+      [richer_prompt.description]2. [/][richer_prompt.choice]b[/]  [richer_prompt.description]The second choice[/]
+      [richer_prompt.description]3. [/][richer_prompt.choice]c[/]  [richer_prompt.description]The third choice[/]
 
     [richer_prompt.hint]↑↓ to navigate · Enter to select[/]
     """

@@ -63,7 +63,7 @@ class MultiSelectSession(InteractiveSession[list[T]]):
     console: Console = dataclasses.field(default_factory=get_console)
 
     def result(self) -> list[T]:
-        return [option.value for option in self.model.selected_values]
+        return [choice.value for choice in self.model.selected_values]
 
 
 @dataclasses.dataclass(slots=True)
