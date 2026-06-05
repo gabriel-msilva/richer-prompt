@@ -104,6 +104,10 @@ class MultiSelect(Generic[T]):
             A ``Console`` instance.
             If None, use the global console.
 
+        Returns
+        -------
+        List of values of the selected choices.
+
         Examples
         --------
         >>> colors = MultiSelect.ask("Choose colors:", ["Red", "Green", "Blue"])
@@ -127,6 +131,10 @@ class MultiSelect(Generic[T]):
             The index of the choice to have the cursor start on.
         default: set of int, optional
             A set of indices of choices that should be selected by default.
+
+        Returns
+        -------
+        List of values of the selected choices.
         """
 
         default = default or set()

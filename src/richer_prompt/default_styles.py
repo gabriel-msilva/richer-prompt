@@ -12,7 +12,6 @@ RICHER_PROMPT_STYLES: dict[str, Style] = {
     "richer_prompt.checkbox.checked": Style(color="green"),
     "richer_prompt.tab": Style.null(),
     "richer_prompt.tab.active": Style(color="light_steel_blue", reverse=True),
-    "richer_prompt.form.answer": Style(color="green"),
 }
 
 
