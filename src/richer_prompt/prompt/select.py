@@ -17,6 +17,11 @@ class Select(Generic[T]):
     """
     Select a single choice from a vertical list.
 
+    .. snapshot::
+        :hide-code:
+
+        Select.ask("Choose a color:", ["Red", "Green", "Blue"])
+
     Parameters
     ----------
     message: str or rich.text.Text

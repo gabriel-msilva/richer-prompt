@@ -17,6 +17,11 @@ class MultiSelect(Generic[T]):
     """
     Select multiple choices from a vertical list.
 
+    .. snapshot::
+        :hide-code:
+
+        MultiSelect.ask("Choose colors:", ["Red", "Green", "Blue"])
+
     Parameters
     ----------
     message: str or rich.text.Text

@@ -1,15 +1,14 @@
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SRC_PATH = PROJECT_ROOT / "src"
+from richer_prompt import __version__
 
-sys.path.insert(0, str(SRC_PATH))
+DOCS_PATH = Path(__file__).resolve().parent
+sys.path.insert(0, DOCS_PATH.as_posix())
 
 project = "richer-prompt"
 author = "Gabriel Mello Silva"
+release = __version__
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -17,25 +16,21 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_copybutton",
     "sphinx_inline_tabs",
+    "ext.snapshot",  # custom extension for rendering prompt snapshots
 ]
 
-templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "furo"
 html_theme_options = {
     "source_repository": "https://github.com/gabriel-msilva/richer-prompt/",
     "source_branch": "main",
-    "source_directory": "docs/",
+    "source_directory": "docs",
 }
 
 autosummary_generate = True
 autoclass_content = "class"
-autodoc_default_options = {
-    "members": True,
-    "undoc-members": False,
-    "show-inheritance": True,
-}
+autodoc_default_options = {"members": True, "undoc-members": False}
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
