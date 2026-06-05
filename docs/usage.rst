@@ -1,6 +1,9 @@
 Usage
 =====
 
+*rich-prompt* provides interactive terminal prompts.
+Users can navigate and select from a list of options.
+
 All prompt classes follow the same API of
 `rich.prompt.Prompt <https://rich.readthedocs.io/en/stable/prompt.html>`_.
 
@@ -20,13 +23,18 @@ Call the instance for a reusable prompt, or use the ``.ask()`` class method for 
     # One-off prompt
     choice = Select.ask("Select a color:", choices=["Red", "Green", "Blue"])
 
+.. snapshot::
+    :hide-code:
+
+    Select.ask("Select a color:", choices=["Red", "Green", "Blue"])
+
 The prompt message may be given as a string
 (which may contain `Console Markup <https://rich.readthedocs.io/en/stable/markup.html#console-markup>`_ and emoji code)
 or as a :py:class:`rich.text.Text` instance.
 
-.. code-block:: python
+.. snapshot::
 
-    Select.ask("[cyan]?[/cyan] Select a color:", choices=["Red", "Green", "Blue"])
+    Select.ask("[cyan]?[/cyan] Select a [i]color[/i]:", choices=["Red", "Green", "Blue"])
 
 See the :ref:`api` for details on each prompt class and their available options.
 
@@ -34,13 +42,16 @@ Choices
 -------
 
 Use :py:class:`Choice` objects in the `choices` list for more control over the display and formatting.
-`label` replaces the text in the prompt display (`value` is still returned), and `description` adds secondary text to the choice.
 
-.. code-block:: python
+- :py:attr:`Choice.value` is the actual value returned when the choice is selected (can be any type that implements ``__str__``).
+- :py:attr:`Choice.label` replaces the text in the prompt display. (optional)
+- :py:attr:`Choice.description` adds secondary text to the choice. (optional)
+
+.. snapshot::
 
     from richer_prompt import Choice, Tabs
 
-    proceed = Tabs.ask(
+    Tabs.ask(
         "Do you want to continue?",
         choices=[
             Choice(False, label="No", description="Cancel and exit"),
@@ -48,23 +59,28 @@ Use :py:class:`Choice` objects in the `choices` list for more control over the d
         ]
     )
 
-    assert isinstance(proceed, bool)
-
 Themes
 ------
 
 `richer-prompt` injects extra styles to the default Rich theme,
 so you can customize the appearance of prompts with Rich themes.
 
-.. code-block:: python
+.. snapshot::
 
     from rich.console import Console
     from rich.theme import Theme
 
-    theme = Theme({"richer_prompt.cursor": "blue", "richer_prompt.hint": "italic dim"})
+    from richer_prompt import MultiSelect
+
+    theme = Theme({"richer_prompt.cursor": "blue bold", "richer_prompt.hint": "yellow italic"})
     console = Console(theme=theme)
 
-    prompt = Select("Select a color:", choices=["Red", "Green", "Blue"], console=console)
+    MultiSelect.ask(
+        "Select multiple options:",
+        choices=["Option 1", "Option 2", "Option 3"],
+        console=console
+    )
+
 
 The following style names are available for customization:
 

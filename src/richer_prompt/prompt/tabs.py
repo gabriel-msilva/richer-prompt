@@ -17,6 +17,11 @@ class Tabs(Generic[T]):
     """
     Select a single choice from a horizontal list.
 
+    .. snapshot::
+        :hide-code:
+
+        Tabs.ask("Choose a color:", ["Red", "Green", "Blue"])
+
     Parameters
     ----------
     message: str or rich.text.Text

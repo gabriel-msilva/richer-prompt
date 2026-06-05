@@ -3,6 +3,13 @@ richer-prompt
 
 richer-prompt provides interactive terminal prompts built on top of `Rich <https://github.com/Textualize/rich>`_.
 
+**Version**: |release|
+
+**Useful links**:
+`Source Repository <https://github.com/gabriel-msilva/richer-prompt>`_
+| `Issues & Ideas <https://github.com/gabriel-msilva/richer-prompt/issues>`_
+
+
 Installation
 ------------
 
@@ -30,6 +37,19 @@ run the following from the command line:
 
    python -m richer_prompt
 
+
+.. snapshot::
+   :hide-code:
+   :title: richer-prompt
+
+   Select.ask(
+      "Choose a bread:",
+      [
+         Choice("white", label="White", description="Soft and fluffy"),
+         Choice("whole_wheat", label="Whole wheat", description="Nutty and hearty"),
+         Choice("sourdough", label="Sourdough", description="Tangy and crusty"),
+      ],
+   )
 
 .. toctree::
    :maxdepth: 2
