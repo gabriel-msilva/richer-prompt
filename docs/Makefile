@@ -13,7 +13,7 @@ serve: ## Serve Sphinx docs locally with live reload
 	uv run --group docs sphinx-autobuild $(SOURCE_DIR) $(BUILD_DIR)
 
 .PHONY: clean
-clean: ## Clean build artifacts
+clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR)
 
 .PHONY: help
