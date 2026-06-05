@@ -75,6 +75,10 @@ class Tabs(Generic[T]):
             A ``Console`` instance.
             If None, use the global console.
 
+        Returns
+        -------
+        The value of the selected choice.
+
         Examples
         --------
         >>> color = Tabs.ask("Choose a color:", ["Red", "Green", "Blue"])
@@ -93,6 +97,10 @@ class Tabs(Generic[T]):
         ----------
         index: int, default 0
             The index of the choice to select by default.
+
+        Returns
+        -------
+        The value of the selected choice.
         """
         session = TabsSelectSession(
             model=TabsSelectionModel(self.choices, cursor=index),

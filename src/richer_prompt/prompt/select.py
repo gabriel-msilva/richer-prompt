@@ -24,7 +24,7 @@ class Select(Generic[T]):
     choices: iterable of T or Choice[T]
         The values to choose from.
         Each choice can be a raw value or an instance of :py:class:`Choice`,
-        Whether to display numbers next to the choices.
+        which allows customization of labels and descriptions.
     show_hint: bool, default True
         Whether to show a hint about how to select choices.
     console: rich.console.Console, optional
@@ -95,6 +95,10 @@ class Select(Generic[T]):
             A ``Console`` instance.
             If None, use the global console.
 
+        Returns
+        -------
+        The value of the selected choice.
+
         Examples
         --------
         >>> color = Select.ask("Choose a color:", ["Red", "Green", "Blue"])
@@ -116,6 +120,10 @@ class Select(Generic[T]):
         ----------
         index: int, default 0
             The index of the choice to select by default.
+
+        Returns
+        -------
+        The value of the selected choice.
         """
         session = SingleSelectSession(
             model=SingleSelectionModel(self.choices, cursor=index),

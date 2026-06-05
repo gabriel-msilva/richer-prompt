@@ -19,6 +19,13 @@ dev = [
     "ty>=0.0.33",
     "version-pioneer>=0.0.16",
 ]
+docs = [
+    "sphinx>=8.2.3",
+    "sphinx-autobuild>=2024.10.3",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-inline-tabs>=2025.12.21.14",
+    "furo>=2024.8.6",
+]
 
 [tool.hatch.version]
 source = "version-pioneer"
