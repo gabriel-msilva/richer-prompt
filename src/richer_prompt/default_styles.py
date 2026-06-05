@@ -6,12 +6,12 @@ RICHER_PROMPT_STYLES: dict[str, Style] = {
     "richer_prompt.hint": Style(dim=True),
     "richer_prompt.choice": Style.null(),
     "richer_prompt.choice.description": Style(dim=True),
-    "richer_prompt.cursor": Style(color="light_steel_blue"),
+    "richer_prompt.cursor": Style(color="magenta"),
     "richer_prompt.cursor.submit": Style(bold=True),
     "richer_prompt.checkbox": Style.null(),
     "richer_prompt.checkbox.checked": Style(color="green"),
     "richer_prompt.tab": Style.null(),
-    "richer_prompt.tab.active": Style(color="light_steel_blue", reverse=True),
+    "richer_prompt.tab.active": Style(color="magenta", reverse=True),
 }
 
 
