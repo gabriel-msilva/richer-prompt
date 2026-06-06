@@ -33,7 +33,8 @@ jobs:
     needs: [pre-commit]
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.14"]
+        resolution-strategy: ["lowest-direct", "highest"]
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +43,7 @@ jobs:
         with:
           version: "${{ env.UV_VERSION }}"
           python-version: ${{ matrix.python-version }}
+          resolution-strategy: ${{ matrix.resolution-strategy }}
 
       - name: Run tests
         run: |
