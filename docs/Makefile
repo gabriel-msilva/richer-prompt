@@ -1,8 +1,16 @@
 .DEFAULT_GOAL = help
 
+ASSETS_DIR = assets
 SOURCE_DIR = .
 BUILD_DIR = _build/html
 
+
+.PHONY: demo
+demo: ## Generate demo GIF
+	uv run --with asciinema \
+		asciinema rec -c "python -m richer_prompt" assets/demo.cast
+	uvx --from asciinema-gif-generator \
+		agg --cols 95 --rows 12 --theme github-dark assets/demo.cast assets/demo.gif
 
 .PHONY: build
 build: ## Build Sphinx docs

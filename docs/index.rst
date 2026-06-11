@@ -30,26 +30,16 @@ You can install `richer-prompt` from PyPI with pip or your favorite package mana
 Demo
 ----
 
-To check if `richer-prompt` was installed correctly, and to see a little of what it can do,
+To check if `richer-prompt` was installed correctly, and to see a quick demo of its capabilities,
 run the following from the command line:
 
 .. code-block:: bash
 
    python -m richer_prompt
 
-
-.. snapshot::
-   :hide-code:
-   :title: richer-prompt
-
-   Select.ask(
-      "Choose a bread:",
-      [
-         Choice("white", label="White", description="Soft and fluffy"),
-         Choice("whole_wheat", label="Whole wheat", description="Nutty and hearty"),
-         Choice("sourdough", label="Sourdough", description="Tangy and crusty"),
-      ],
-   )
+.. image:: assets/demo.gif
+   :alt: richer-prompt demo
+   :align: center
 
 .. toctree::
    :maxdepth: 2
