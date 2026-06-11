@@ -1,0 +1,7 @@
+# See full schema at
+#   https://github.com/DavidAnson/markdownlint/blob/main/schema/.markdownlint.yaml
+
+MD013:
+  line_length: 120
+  heading_line_length: 88
+  tables: false
