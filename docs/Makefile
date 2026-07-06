@@ -14,11 +14,13 @@ demo: ## Generate demo GIF
 
 .PHONY: build
 build: ## Build Sphinx docs
-	uv run --group docs sphinx-build -W --keep-going -b html $(SOURCE_DIR) $(BUILD_DIR)
+	uv run --group docs \
+		sphinx-build --fail-on-warning --keep-going -b html $(SOURCE_DIR) $(BUILD_DIR)
 
 .PHONY: serve
 serve: ## Serve Sphinx docs locally with live reload
-	uv run --group docs sphinx-autobuild $(SOURCE_DIR) $(BUILD_DIR)
+	uv run --group docs \
+		sphinx-autobuild $(SOURCE_DIR) $(BUILD_DIR)
 
 .PHONY: clean
 clean: ## Remove build artifacts

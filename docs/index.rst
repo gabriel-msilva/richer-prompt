@@ -47,3 +47,4 @@ run the following from the command line:
 
    usage
    api
+   releases
