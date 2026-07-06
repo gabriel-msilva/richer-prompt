@@ -5,6 +5,9 @@ import readchar
 from rich.console import Console, RenderableType
 from rich.live import Live
 from rich.text import Text
+from rich.theme import Theme
+
+from richer_prompt.default_styles import missing_styles
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
@@ -40,16 +43,19 @@ def run(
     if read_key is None:
         read_key = readchar.readkey
 
-    with Live(
-        widget.render(),
-        console=console,
-        auto_refresh=False,
-        transient=True,
-    ) as live:
-        while not widget.submitted:
-            widget.handle_key(read_key())
-            live.update(widget.render(), refresh=True)
+    theme = Theme(missing_styles(console), inherit=False)
 
-    console.print(widget.answer())
+    with console.use_theme(theme):
+        with Live(
+            widget.render(),
+            console=console,
+            auto_refresh=False,
+            transient=True,
+        ) as live:
+            while not widget.submitted:
+                widget.handle_key(read_key())
+                live.update(widget.render(), refresh=True)
+
+        console.print(widget.answer())
 
     return widget.result()

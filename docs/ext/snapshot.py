@@ -1,10 +1,12 @@
 import ast
+import contextlib
 import io
 from typing import Any
 
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 from docutils.statemachine import StringList
+from rich import errors
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
@@ -144,13 +146,12 @@ def render_svg(
 
 
 def _build_snapshot_console(console: Console | None = None) -> Console:
-    styles = {}
+    styles = dict(RICHER_PROMPT_STYLES)
 
     if console is not None:
         for style_name in RICHER_PROMPT_STYLES:
-            style = console.get_style(style_name, default=None)
-            if style is not None:
-                styles[style_name] = style
+            with contextlib.suppress(errors.MissingStyle):
+                styles[style_name] = console.get_style(style_name)
 
     return Console(
         file=io.StringIO(),
@@ -158,7 +159,7 @@ def _build_snapshot_console(console: Console | None = None) -> Console:
         force_terminal=True,
         color_system="truecolor",
         width=CONSOLE_WIDTH,
-        theme=Theme(styles) if styles else None,
+        theme=Theme(styles),
     )
 
 

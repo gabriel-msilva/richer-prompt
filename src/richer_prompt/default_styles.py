@@ -1,3 +1,5 @@
+from rich import errors
+from rich.console import Console
 from rich.style import Style
 
 RICHER_PROMPT_STYLES: dict[str, Style] = {
@@ -13,10 +15,14 @@ RICHER_PROMPT_STYLES: dict[str, Style] = {
 }
 
 
-def inject_styles() -> None:
-    from rich import themes
-    from rich.default_styles import DEFAULT_STYLES
+def missing_styles(console: Console) -> dict[str, Style]:
+    """Default styles for style names not defined by the console's theme."""
+    missing = {}
 
     for name, style in RICHER_PROMPT_STYLES.items():
-        themes.DEFAULT.styles.setdefault(name, style)
-        DEFAULT_STYLES.setdefault(name, style)
+        try:
+            console.get_style(name)
+        except errors.MissingStyle:
+            missing[name] = style
+
+    return missing

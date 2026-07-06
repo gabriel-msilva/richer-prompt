@@ -62,8 +62,10 @@ Use :py:class:`Choice` objects in the `choices` list for more control over the d
 Themes
 ------
 
-`richer-prompt` injects extra styles to the default Rich theme,
-so you can customize the appearance of prompts with Rich themes.
+Prompts are styled with Rich themes.
+When a prompt runs, any ``richer_prompt.*`` style defined in the console's theme
+overrides the default style; all other style names fall back to the defaults
+listed below, no matter when the theme was created.
 
 .. snapshot::
 
