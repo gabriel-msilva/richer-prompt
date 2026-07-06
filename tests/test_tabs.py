@@ -4,7 +4,6 @@ import pytest
 import readchar
 
 from richer_prompt.choices import Choice
-from richer_prompt.models import TabsSelectionModel
 from richer_prompt.prompt.tabs import Tabs
 from tests.utils import assert_snapshot, simulate
 
@@ -74,7 +73,7 @@ def test_that_index_out_of_range_raises(tabs: Tabs, index):
 
 def test_ask():
     with patch(
-        "richer_prompt.models.readchar.readkey",
+        "richer_prompt.session.readchar.readkey",
         side_effect=[readchar.key.RIGHT, readchar.key.ENTER],
     ):
         assert Tabs.ask("Select a choice:", ["a", "b", "c"], index=1) == "c"
@@ -88,7 +87,7 @@ def test_that_answer_is_rendered(tabs: Tabs):
 
 
 def test_that_str_choices_are_rendered(tabs: Tabs):
-    model = TabsSelectionModel(tabs.choices)
+    widget = tabs._build_widget()
 
     expected = """
     Select a choice:
@@ -97,7 +96,7 @@ def test_that_str_choices_are_rendered(tabs: Tabs):
 
     """
 
-    assert_snapshot(tabs, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_labels_and_descriptions_are_rendered():
@@ -110,7 +109,7 @@ def test_that_labels_and_descriptions_are_rendered():
         ],
     )
 
-    model = TabsSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select a choice:
@@ -119,9 +118,9 @@ def test_that_labels_and_descriptions_are_rendered():
 
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
-    model = TabsSelectionModel(prompt.choices, cursor=1)
+    widget = prompt._build_widget(index=1)
 
     expected = """
     Select a choice:
@@ -130,7 +129,7 @@ def test_that_labels_and_descriptions_are_rendered():
     The second choice
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_style():
@@ -143,7 +142,7 @@ def test_style():
         ],
     )
 
-    model = TabsSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     [richer_prompt.title]Select a choice:[/]
@@ -152,4 +151,4 @@ def test_style():
     [richer_prompt.description]The first choice[/]
     """
 
-    assert_snapshot(prompt, model, expected, raw=True)
+    assert_snapshot(widget, expected, raw=True)

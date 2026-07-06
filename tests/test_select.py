@@ -4,7 +4,6 @@ import pytest
 import readchar
 
 from richer_prompt.choices import Choice
-from richer_prompt.models import SingleSelectionModel
 from richer_prompt.prompt.select import Select
 from tests.utils import assert_snapshot, simulate
 
@@ -74,7 +73,7 @@ def test_that_index_out_of_range_raises(select: Select, index):
 
 def test_ask():
     with patch(
-        "richer_prompt.models.readchar.readkey",
+        "richer_prompt.session.readchar.readkey",
         side_effect=[readchar.key.UP, readchar.key.ENTER],
     ):
         assert Select.ask("Select a choice:", ["a", "b", "c"], index=1) == "a"
@@ -88,7 +87,7 @@ def test_that_answer_is_rendered(select: Select):
 
 
 def test_that_str_choices_are_rendered(select: Select):
-    model = SingleSelectionModel(select.choices)
+    widget = select._build_widget()
 
     expected = """
     Select a choice:
@@ -100,7 +99,7 @@ def test_that_str_choices_are_rendered(select: Select):
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(select, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_labels_and_descriptions_are_rendered():
@@ -113,7 +112,7 @@ def test_that_labels_and_descriptions_are_rendered():
         ],
     )
 
-    model = SingleSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select a choice:
@@ -125,12 +124,12 @@ def test_that_labels_and_descriptions_are_rendered():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_choices_are_rendered_without_numbers():
     select = Select("Select a choice:", ["a", "b", "c"], numbered=False)
-    model = SingleSelectionModel(select.choices)
+    widget = select._build_widget()
 
     expected = """
     Select a choice:
@@ -142,11 +141,11 @@ def test_that_choices_are_rendered_without_numbers():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(select, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_cursor_pointer_moves(select: Select):
-    model = SingleSelectionModel(select.choices, cursor=1)
+    widget = select._build_widget(index=1)
 
     expected = """
     Select a choice:
@@ -158,12 +157,12 @@ def test_that_cursor_pointer_moves(select: Select):
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(select, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_custom_pointer():
     prompt = Select("Select a choice:", ["a", "b", "c"], cursor_pointer=">>")
-    model = SingleSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select a choice:
@@ -175,12 +174,12 @@ def test_custom_pointer():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_hint_is_hidden():
     prompt = Select("Select a choice:", ["a", "b", "c"], show_hint=False)
-    model = SingleSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select a choice:
@@ -190,12 +189,12 @@ def test_that_hint_is_hidden():
       3. c
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_10_or_more_choices_are_aligned():
     prompt = Select("Select a choice:", [f"Choice {i}" for i in range(1, 11)])
-    model = SingleSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select a choice:
@@ -214,7 +213,7 @@ def test_that_10_or_more_choices_are_aligned():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_style():
@@ -227,7 +226,7 @@ def test_style():
         ],
     )
 
-    model = SingleSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     [richer_prompt.title]Select a choice:[/]
@@ -239,4 +238,4 @@ def test_style():
     [richer_prompt.hint]↑↓ to navigate · Enter to select[/]
     """
 
-    assert_snapshot(prompt, model, expected, raw=True)
+    assert_snapshot(widget, expected, raw=True)

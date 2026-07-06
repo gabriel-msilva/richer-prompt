@@ -4,7 +4,6 @@ import pytest
 import readchar
 
 from richer_prompt.choices import Choice
-from richer_prompt.models import MultiSelectionModel
 from richer_prompt.prompt.multiselect import MultiSelect
 from tests.utils import assert_snapshot, simulate
 
@@ -141,7 +140,7 @@ def test_that_default_indices_out_of_range_raises(multiselect):
 
 def test_ask():
     with patch(
-        "richer_prompt.models.readchar.readkey",
+        "richer_prompt.session.readchar.readkey",
         side_effect=[readchar.key.ENTER, readchar.key.DOWN, readchar.key.ENTER],
     ):
         assert MultiSelect.ask("Pick", ["a", "b", "c"], index=2) == ["c"]
@@ -186,7 +185,7 @@ def test_that_answer_is_rendered(multiselect: MultiSelect):
 
 
 def test_that_str_choices_are_rendered(multiselect: MultiSelect):
-    model = MultiSelectionModel(multiselect.choices)
+    widget = multiselect._build_widget()
 
     expected = """
     Select multiple choices:
@@ -199,7 +198,7 @@ def test_that_str_choices_are_rendered(multiselect: MultiSelect):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(multiselect, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_labels_and_descriptions_are_rendered():
@@ -212,7 +211,7 @@ def test_that_labels_and_descriptions_are_rendered():
         ],
     )
 
-    model = MultiSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select multiple choices:
@@ -225,12 +224,12 @@ def test_that_labels_and_descriptions_are_rendered():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_choices_are_rendered_without_numbers():
     prompt = MultiSelect("Select multiple choices:", ["a", "b", "c"], numbered=False)
-    model = MultiSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select multiple choices:
@@ -243,11 +242,11 @@ def test_that_choices_are_rendered_without_numbers():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_cursor_pointer_moves(multiselect: MultiSelect):
-    model = MultiSelectionModel(multiselect.choices, cursor=1)
+    widget = multiselect._build_widget(index=1)
 
     expected = """
     Select multiple choices:
@@ -260,11 +259,11 @@ def test_that_cursor_pointer_moves(multiselect: MultiSelect):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(multiselect, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
-    model = MultiSelectionModel(multiselect.choices, selected={0, 2})
+    widget = multiselect._build_widget(default={0, 2})
 
     expected = """
     Select multiple choices:
@@ -277,14 +276,14 @@ def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(multiselect, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_custom_pointer():
     multiselect = MultiSelect(
         "Select multiple choices:", ["a", "b", "c"], cursor_pointer=">>"
     )
-    model = MultiSelectionModel(multiselect.choices)
+    widget = multiselect._build_widget()
 
     expected = """
     Select multiple choices:
@@ -297,12 +296,12 @@ def test_custom_pointer():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(multiselect, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_hint_is_hidden():
     prompt = MultiSelect("Select multiple choices:", ["a", "b", "c"], show_hint=False)
-    model = MultiSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select multiple choices:
@@ -313,14 +312,14 @@ def test_that_hint_is_hidden():
          Submit
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_that_10_or_more_choices_are_aligned():
     prompt = MultiSelect(
         "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)]
     )
-    model = MultiSelectionModel(prompt.choices)
+    widget = prompt._build_widget()
 
     expected = """
     Select multiple choices:
@@ -340,7 +339,7 @@ def test_that_10_or_more_choices_are_aligned():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(prompt, model, expected)
+    assert_snapshot(widget, expected)
 
 
 def test_style():
@@ -353,7 +352,7 @@ def test_style():
         ],
     )
 
-    model = MultiSelectionModel(prompt.choices, selected={0})
+    widget = prompt._build_widget(default={0})
     expected = """
     [richer_prompt.title]Select multiple choices:[/]
 
@@ -365,9 +364,9 @@ def test_style():
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
     """
 
-    assert_snapshot(prompt, model, expected, raw=True)
+    assert_snapshot(widget, expected, raw=True)
 
-    model = MultiSelectionModel(prompt.choices, cursor=3)
+    widget = prompt._build_widget(index=3)
     expected = """
     [richer_prompt.title]Select multiple choices:[/]
 
@@ -379,4 +378,4 @@ def test_style():
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
     """
 
-    assert_snapshot(prompt, model, expected, raw=True)
+    assert_snapshot(widget, expected, raw=True)

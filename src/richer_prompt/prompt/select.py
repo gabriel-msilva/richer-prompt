@@ -1,16 +1,120 @@
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
+import readchar
 from rich import get_console
-from rich.console import Console
-from rich.text import TextType
+from rich.console import Console, Group
+from rich.text import Text, TextType
 
 from richer_prompt.choices import Choice, ensure_choice
-from richer_prompt.models import SingleSelectionModel
-from richer_prompt.renderers import RIGHT_POINTER, SingleSelectRenderer
-from richer_prompt.session import SingleSelectSession
+from richer_prompt.rendering import (
+    DOWN_ARROW,
+    RIGHT_POINTER,
+    UP_ARROW,
+    choice_label,
+    cursor_cell,
+    ensure_text,
+    format_hint,
+    number_cell,
+)
+from richer_prompt.session import run
 
 T = TypeVar("T")
+
+
+class SelectWidget(Generic[T]):
+    def __init__(
+        self,
+        choices: list[Choice[T]],
+        cursor: int = 0,
+        *,
+        message: TextType,
+        cursor_pointer: str = RIGHT_POINTER,
+        numbered: bool = True,
+        show_hint: bool = True,
+    ):
+        if cursor < 0 or cursor >= len(choices):
+            raise ValueError(f"Index '{cursor}' is out of range")
+
+        self.choices = choices
+        self.cursor = cursor
+        self.message = ensure_text(message, default_style="richer_prompt.title")
+        self.cursor_pointer = cursor_pointer
+        self.numbered = numbered
+        self.show_hint = show_hint
+        self._submitted = False
+
+    @property
+    def submitted(self) -> bool:
+        return self._submitted
+
+    @property
+    def current(self) -> Choice[T]:
+        return self.choices[self.cursor]
+
+    def submit(self) -> None:
+        self._submitted = True
+
+    def move(self, delta: int) -> None:
+        self.cursor = (self.cursor + delta) % len(self.choices)
+
+    def handle_key(self, key: str) -> bool:
+        match key:
+            case readchar.key.DOWN:
+                self.move(1)
+            case readchar.key.UP:
+                self.move(-1)
+            case readchar.key.ENTER:
+                self.submit()
+            case _ if key.isdecimal():
+                n = int(key) - 1
+                if 0 <= n < len(self.choices):
+                    self.cursor = n
+                    self.submit()
+            case _:
+                return False
+
+        return True
+
+    def render(self) -> Group:
+        rows: list[Text] = []
+
+        if self.message:
+            rows.append(self.message)
+            rows.append(Text())
+
+        number_width = len(str(len(self.choices)))
+
+        for i, choice in enumerate(self.choices):
+            is_focused = i == self.cursor
+
+            rows.append(
+                Text.assemble(
+                    cursor_cell(self.cursor_pointer, is_focused),
+                    " ",
+                    number_cell(i, number_width) if self.numbered else Text(),
+                    choice_label(choice, is_focused),
+                )
+            )
+
+        if self.show_hint:
+            rows.append(Text())
+            rows.append(
+                format_hint(
+                    f"{UP_ARROW}{DOWN_ARROW} to navigate",
+                    "Enter to select",
+                )
+            )
+
+        return Group(*rows)
+
+    def answer(self) -> Text:
+        return Text.assemble(
+            self.message.copy(), " ", (self.current.display, "richer_prompt.cursor")
+        )
+
+    def result(self) -> T:
+        return self.current.value
 
 
 class Select(Generic[T]):
@@ -56,20 +160,17 @@ class Select(Generic[T]):
         if not self.choices:
             raise ValueError("choices cannot be empty")
 
-        self.renderer = SingleSelectRenderer(
-            message,
-            cursor_pointer=cursor_pointer,
-            numbered=numbered,
-            show_hint=show_hint,
-        )
-
+        self.message = message
+        self.cursor_pointer = cursor_pointer
+        self.numbered = numbered
+        self.show_hint = show_hint
         self.console = console or get_console()
 
     @classmethod
     def ask(
         cls,
         message: TextType,
-        choices: Iterable[T],
+        choices: Iterable[Choice[T] | T],
         *,
         index: int = 0,
         cursor_pointer: str = RIGHT_POINTER,
@@ -130,15 +231,22 @@ class Select(Generic[T]):
         -------
         The value of the selected choice.
         """
-        session = SingleSelectSession(
-            model=SingleSelectionModel(self.choices, cursor=index),
-            renderer=self.renderer,
-            console=self.console,
-        )
+        widget = self._build_widget(index)
 
         self.pre_prompt()
 
-        return session.run()
+        return run(widget, self.console)
+
+    def _build_widget(self, index: int = 0) -> SelectWidget[T]:
+        """Build a fresh widget for one prompt run."""
+        return SelectWidget(
+            self.choices,
+            cursor=index,
+            message=self.message,
+            cursor_pointer=self.cursor_pointer,
+            numbered=self.numbered,
+            show_hint=self.show_hint,
+        )
 
     def pre_prompt(self) -> None:
         """Hook to display something before the prompt."""

@@ -1,16 +1,168 @@
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
+import readchar
 from rich import get_console
-from rich.console import Console
-from rich.text import TextType
+from rich.console import Console, Group
+from rich.text import Text, TextType
 
 from richer_prompt.choices import Choice, ensure_choice
-from richer_prompt.models import MultiSelectionModel
-from richer_prompt.renderers import RIGHT_POINTER, MultiSelectRenderer
-from richer_prompt.session import MultiSelectSession
+from richer_prompt.rendering import (
+    DOWN_ARROW,
+    RIGHT_POINTER,
+    UP_ARROW,
+    checkbox_cell,
+    choice_label,
+    cursor_cell,
+    ensure_text,
+    format_hint,
+    number_cell,
+)
+from richer_prompt.session import run
 
 T = TypeVar("T")
+
+
+class MultiSelectWidget(Generic[T]):
+    def __init__(
+        self,
+        choices: list[Choice[T]],
+        cursor: int = 0,
+        selected: set[int] | None = None,
+        *,
+        message: TextType,
+        cursor_pointer: str = RIGHT_POINTER,
+        numbered: bool = True,
+        show_hint: bool = True,
+    ):
+        selected = set(selected or [])
+
+        # may point to the submit button
+        if cursor < 0 or cursor > len(choices):
+            raise ValueError(f"Index '{cursor}' is out of range")
+
+        offenders = [x for x in selected if x < 0 or x >= len(choices)]
+        if offenders:
+            raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
+
+        self.choices = choices
+        self.cursor = cursor
+        self.selected = selected
+        self.message = ensure_text(message, default_style="richer_prompt.title")
+        self.cursor_pointer = cursor_pointer
+        self.numbered = numbered
+        self.show_hint = show_hint
+        self._submitted = False
+
+    @property
+    def submitted(self) -> bool:
+        return self._submitted
+
+    @property
+    def selected_choices(self) -> list[Choice[T]]:
+        return [self.choices[i] for i in sorted(self.selected)]
+
+    def submit(self) -> None:
+        self._submitted = True
+
+    def move(self, delta: int) -> None:
+        total_rows = len(self.choices) + 1
+        self.cursor = (self.cursor + delta) % total_rows
+
+    def toggle(self) -> None:
+        if self.cursor in self.selected:
+            self.selected.remove(self.cursor)
+        else:
+            self.selected.add(self.cursor)
+
+    def is_on_submit(self) -> bool:
+        return self.cursor == len(self.choices)
+
+    def handle_key(self, key: str) -> bool:
+        match key:
+            case readchar.key.DOWN:
+                self.move(1)
+            case readchar.key.UP:
+                self.move(-1)
+            case readchar.key.ENTER if self.is_on_submit():
+                self.submit()
+            case readchar.key.ENTER | readchar.key.SPACE if not self.is_on_submit():
+                self.toggle()
+            case _ if key.isdecimal():
+                n = int(key) - 1
+                if 0 <= n < len(self.choices):
+                    self.cursor = n
+                    self.toggle()
+            case _:
+                return False
+
+        return True
+
+    def render(self) -> Group:
+        rows: list[Text] = []
+
+        if self.message:
+            rows.append(self.message)
+            rows.append(Text())
+
+        number_width = len(str(len(self.choices)))
+
+        for i, choice in enumerate(self.choices):
+            is_focused = i == self.cursor
+
+            rows.append(
+                Text.assemble(
+                    cursor_cell(self.cursor_pointer, is_focused),
+                    " ",
+                    number_cell(i, number_width) if self.numbered else Text(),
+                    checkbox_cell(i in self.selected),
+                    " ",
+                    choice_label(choice, is_focused),
+                )
+            )
+
+        submit_label = Text(
+            "Submit",
+            style="richer_prompt.cursor"
+            if self.is_on_submit()
+            else "richer_prompt.choice",
+        )
+        padding = " " * (number_width + 2) if self.numbered else ""
+
+        rows.append(
+            Text.assemble(
+                cursor_cell(self.cursor_pointer, self.is_on_submit()),
+                " ",
+                padding,
+                submit_label,
+            )
+        )
+
+        if self.show_hint:
+            rows.append(Text())
+            rows.append(
+                format_hint(
+                    f"{UP_ARROW}{DOWN_ARROW} to navigate",
+                    "Enter to select",
+                    "Submit to finish",
+                )
+            )
+
+        return Group(*rows)
+
+    def answer(self) -> Text:
+        values = ", ".join(choice.display for choice in self.selected_choices)
+        if values:
+            return Text.assemble(
+                self.message.copy(), " ", (values, "richer_prompt.cursor")
+            )
+
+        return Text.assemble(
+            self.message.copy(), " ", ("(none)", "richer_prompt.description")
+        )
+
+    def result(self) -> list[T]:
+        return [choice.value for choice in self.selected_choices]
 
 
 class MultiSelect(Generic[T]):
@@ -56,20 +208,15 @@ class MultiSelect(Generic[T]):
         show_hint: bool = True,
         console: Console | None = None,
     ):
-        self.message = message
         self.choices: list[Choice[T]] = [ensure_choice(choice) for choice in choices]
-
         if not self.choices:
             raise ValueError("choices cannot be empty")
 
+        self.message = message
+        self.cursor_pointer = cursor_pointer
+        self.numbered = numbered
+        self.show_hint = show_hint
         self.console = console or get_console()
-
-        self.renderer = MultiSelectRenderer(
-            message,
-            cursor_pointer=cursor_pointer,
-            numbered=numbered,
-            show_hint=show_hint,
-        )
 
     @classmethod
     def ask(
@@ -141,20 +288,25 @@ class MultiSelect(Generic[T]):
         -------
         List of values of the selected choices.
         """
-
-        default = default or set()
-
-        session = MultiSelectSession(
-            model=MultiSelectionModel(
-                self.choices, cursor=index, selected=set(default)
-            ),
-            renderer=self.renderer,
-            console=self.console,
-        )
+        widget = self._build_widget(index, default)
 
         self.pre_prompt()
 
-        return session.run()
+        return run(widget, self.console)
+
+    def _build_widget(
+        self, index: int = 0, default: set[int] | None = None
+    ) -> MultiSelectWidget[T]:
+        """Build a fresh widget for one prompt run."""
+        return MultiSelectWidget(
+            self.choices,
+            cursor=index,
+            selected=default,
+            message=self.message,
+            cursor_pointer=self.cursor_pointer,
+            numbered=self.numbered,
+            show_hint=self.show_hint,
+        )
 
     def pre_prompt(self) -> None:
         """Hook to display something before the prompt."""

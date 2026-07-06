@@ -1,16 +1,110 @@
 from collections.abc import Iterable
-from typing import Generic, TypeVar
+from typing import Final, Generic, TypeVar
 
+import readchar
 from rich import get_console
-from rich.console import Console
-from rich.text import TextType
+from rich.console import Console, Group
+from rich.text import Text, TextType
 
 from richer_prompt.choices import Choice, ensure_choice
-from richer_prompt.models import TabsSelectionModel
-from richer_prompt.renderers import TabsRenderer
-from richer_prompt.session import TabsSelectSession
+from richer_prompt.rendering import LEFT_ARROW, RIGHT_ARROW, ensure_text
+from richer_prompt.session import run
 
 T = TypeVar("T")
+
+_TABS_PREVIOUS_KEYS: Final = frozenset(
+    key
+    for key in (readchar.key.LEFT, getattr(readchar.key, "SHIFT_TAB", None))
+    if key is not None
+)
+
+
+class TabsWidget(Generic[T]):
+    def __init__(
+        self,
+        choices: list[Choice[T]],
+        cursor: int = 0,
+        *,
+        message: TextType,
+    ):
+        if cursor < 0 or cursor >= len(choices):
+            raise ValueError(f"Index '{cursor}' is out of range")
+
+        self.choices = choices
+        self.cursor = cursor
+        self.message = ensure_text(message, default_style="richer_prompt.title")
+        self._submitted = False
+
+    @property
+    def submitted(self) -> bool:
+        return self._submitted
+
+    @property
+    def current(self) -> Choice[T]:
+        return self.choices[self.cursor]
+
+    def submit(self) -> None:
+        self._submitted = True
+
+    def move(self, delta: int) -> None:
+        cursor = self.cursor + delta
+
+        self.cursor = max(0, min(len(self.choices) - 1, cursor))
+
+    def handle_key(self, key: str) -> bool:
+        match key:
+            case readchar.key.RIGHT | readchar.key.TAB:
+                self.move(1)
+            case k if k in _TABS_PREVIOUS_KEYS:
+                self.move(-1)
+            case readchar.key.ENTER:
+                self.submit()
+            case _:
+                return False
+
+        return True
+
+    def render(self) -> Group:
+        rows: list[Text] = []
+
+        if self.message:
+            rows.append(self.message)
+            rows.append(Text())
+
+        tabs = Text()
+
+        tabs.append(LEFT_ARROW, style="dim" if self.cursor == 0 else "")
+        tabs.append(" ")
+
+        for i, choice in enumerate(self.choices):
+            if i > 0:
+                tabs.append(" ")
+
+            is_focused = i == self.cursor
+
+            tabs.append(
+                f" {choice.display} ",
+                style="richer_prompt.tab.active" if is_focused else "richer_prompt.tab",
+            )
+
+        tabs.append(" ")
+        tabs.append(
+            RIGHT_ARROW,
+            style="dim" if self.cursor == len(self.choices) - 1 else "",
+        )
+
+        rows.append(tabs)
+        rows.append(Text(self.current.description, style="richer_prompt.description"))
+
+        return Group(*rows)
+
+    def answer(self) -> Text:
+        return Text.assemble(
+            self.message.copy(), " ", (self.current.display, "richer_prompt.cursor")
+        )
+
+    def result(self) -> T:
+        return self.current.value
 
 
 class Tabs(Generic[T]):
@@ -51,14 +145,14 @@ class Tabs(Generic[T]):
         if not self.choices:
             raise ValueError("choices cannot be empty")
 
-        self.renderer = TabsRenderer(message)
+        self.message = message
         self.console = console or get_console()
 
     @classmethod
     def ask(
         cls,
         message: TextType,
-        choices: Iterable[T],
+        choices: Iterable[Choice[T] | T],
         *,
         index: int = 0,
         console: Console | None = None,
@@ -88,11 +182,7 @@ class Tabs(Generic[T]):
         --------
         >>> color = Tabs.ask("Choose a color:", ["Red", "Green", "Blue"])
         """
-        return cls(
-            message,
-            choices,
-            console=console,
-        )(index=index)
+        return cls(message, choices, console=console)(index=index)
 
     def __call__(self, index: int = 0) -> T:
         """
@@ -107,15 +197,19 @@ class Tabs(Generic[T]):
         -------
         The value of the selected choice.
         """
-        session = TabsSelectSession(
-            model=TabsSelectionModel(self.choices, cursor=index),
-            renderer=self.renderer,
-            console=self.console,
-        )
+        widget = self._build_widget(index)
 
         self.pre_prompt()
 
-        return session.run()
+        return run(widget, self.console)
+
+    def _build_widget(self, index: int = 0) -> TabsWidget[T]:
+        """Build a fresh widget for one prompt run."""
+        return TabsWidget(
+            self.choices,
+            cursor=index,
+            message=self.message,
+        )
 
     def pre_prompt(self) -> None:
         """Hook to display something before the prompt."""

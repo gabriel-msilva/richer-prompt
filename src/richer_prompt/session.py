@@ -1,76 +1,55 @@
-import dataclasses
-from typing import Generic, TypeVar
+from collections.abc import Callable
+from typing import Protocol, TypeVar
 
 import readchar
-from rich import get_console
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich.live import Live
-
-from richer_prompt.models import (
-    MultiSelectionModel,
-    SelectionModel,
-    SingleSelectionModel,
-    TabsSelectionModel,
-)
-from richer_prompt.renderers import (
-    MultiSelectRenderer,
-    Renderer,
-    SingleSelectRenderer,
-    TabsRenderer,
-)
+from rich.text import Text
 
 T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 
-class InteractiveSession(Generic[T]):
-    model: SelectionModel[T]
-    renderer: Renderer
-    console: Console
+class Widget(Protocol[T_co]):
+    """
+    A self-contained per-run component driven by :py:func:`run`.
 
-    def run(self):
-        with Live(
-            self.renderer.render(self.model),
-            console=self.console,
-            refresh_per_second=30,
-            transient=True,
-        ) as live:
-            while not self.model.submitted:
-                self.model.handle_key(readchar.readkey())
-                live.update(self.renderer.render(self.model))
+    ``handle_key`` returns whether the key was consumed, so that a composite
+    widget (e.g. a form) can arbitrate keys between itself and its children.
+    """
 
-        self.console.print(self.renderer.get_answer(self.model))
+    @property
+    def submitted(self) -> bool: ...
 
-        return self.result()
+    def handle_key(self, key: str) -> bool: ...
 
-    def result(self) -> T:
-        raise NotImplementedError
+    def render(self) -> RenderableType: ...
+
+    def answer(self) -> Text: ...
+
+    def result(self) -> T_co: ...
 
 
-@dataclasses.dataclass(slots=True)
-class SingleSelectSession(InteractiveSession[T]):
-    model: SingleSelectionModel[T]
-    renderer: SingleSelectRenderer
-    console: Console = dataclasses.field(default_factory=get_console)
+def run(
+    widget: Widget[T],
+    console: Console,
+    *,
+    read_key: Callable[[], str] | None = None,
+) -> T:
+    # resolved at call time so tests can patch `readchar.readkey`
+    if read_key is None:
+        read_key = readchar.readkey
 
-    def result(self) -> T:
-        return self.model.current.value
+    with Live(
+        widget.render(),
+        console=console,
+        auto_refresh=False,
+        transient=True,
+    ) as live:
+        while not widget.submitted:
+            widget.handle_key(read_key())
+            live.update(widget.render(), refresh=True)
 
+    console.print(widget.answer())
 
-@dataclasses.dataclass(slots=True)
-class MultiSelectSession(InteractiveSession[list[T]]):
-    model: MultiSelectionModel[T]
-    renderer: MultiSelectRenderer
-    console: Console = dataclasses.field(default_factory=get_console)
-
-    def result(self) -> list[T]:
-        return [choice.value for choice in self.model.selected_values]
-
-
-@dataclasses.dataclass(slots=True)
-class TabsSelectSession(InteractiveSession[T]):
-    model: TabsSelectionModel[T]
-    renderer: TabsRenderer
-    console: Console = dataclasses.field(default_factory=get_console)
-
-    def result(self) -> T:
-        return self.model.current.value
+    return widget.result()

@@ -10,11 +10,6 @@ from rich.theme import Theme
 
 from richer_prompt import Choice, MultiSelect, Select, Tabs
 from richer_prompt.default_styles import RICHER_PROMPT_STYLES
-from richer_prompt.models import (
-    MultiSelectionModel,
-    SingleSelectionModel,
-    TabsSelectionModel,
-)
 
 CONSOLE_WIDTH = 79
 
@@ -127,19 +122,11 @@ def _safe_eval(node, namespace: dict[str, Any]) -> Any:
 def render_initial_prompt(
     prompt: Any, *, index: int, default: set[int] | None
 ) -> RenderableType:
-    if isinstance(prompt, Select):
-        model = SingleSelectionModel(prompt.choices, cursor=index)
-        return prompt.renderer.render(model)
-
     if isinstance(prompt, MultiSelect):
-        model = MultiSelectionModel(
-            prompt.choices, cursor=index, selected=set(default or set())
-        )
-        return prompt.renderer.render(model)
+        return prompt._build_widget(index=index, default=default).render()
 
-    if isinstance(prompt, Tabs):
-        model = TabsSelectionModel(prompt.choices, cursor=index)
-        return prompt.renderer.render(model)
+    if isinstance(prompt, (Select, Tabs)):
+        return prompt._build_widget(index=index).render()
 
     raise ValueError("snapshot only supports Select, MultiSelect, and Tabs prompts")
 
