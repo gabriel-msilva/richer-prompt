@@ -103,15 +103,9 @@ The following style names are available for customization:
         * - ``richer_prompt.choice``
           - `null`
           - Base style for choice labels.
-        * - ``richer_prompt.choice.description``
-          - ``dim``
-          - Secondary text shown next to each choice.
         * - ``richer_prompt.cursor``
-          - ``light_steel_blue``
+          - ``magenta``
           - Active cursor indicator for the current option.
-        * - ``richer_prompt.cursor.submit``
-          - ``bold``
-          - Cursor indicator when focused on the submit row.
         * - ``richer_prompt.checkbox``
           - `null`
           - Base style for checkbox markers in multiselect prompts.
@@ -122,5 +116,5 @@ The following style names are available for customization:
           - `null`
           - Base style for tab labels.
         * - ``richer_prompt.tab.active``
-          - ``light_steel_blue reverse``
+          - ``magenta reverse``
           - Style for the currently active tab.
