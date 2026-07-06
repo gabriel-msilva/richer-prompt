@@ -19,3 +19,5 @@ API Reference
    :members:
 
 .. autoexception:: richer_prompt.NotInteractiveError
+
+.. autofunction:: richer_prompt.testing.simulate_keys

@@ -3,7 +3,8 @@ import readchar
 
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.tabs import Tabs
-from tests.utils import assert_snapshot, simulate, simulate_keys
+from richer_prompt.testing import simulate_keys
+from tests.utils import assert_snapshot
 
 
 @pytest.fixture
@@ -12,17 +13,15 @@ def tabs(console) -> Tabs:
 
 
 def test_that_choice_is_selected(tabs: Tabs):
-    result = simulate(
-        tabs,
-        [
-            readchar.key.RIGHT,
-            readchar.key.TAB,
-            readchar.key.LEFT,
-            readchar.key.ENTER,
-        ],
-    )
+    keys = [
+        readchar.key.RIGHT,
+        readchar.key.TAB,
+        readchar.key.LEFT,
+        readchar.key.ENTER,
+    ]
 
-    assert result == "b"
+    with simulate_keys(keys):
+        assert tabs() == "b"
 
 
 @pytest.mark.skipif(
@@ -36,7 +35,8 @@ def test_that_shift_tab_move_to_previous(tabs: Tabs):
         readchar.key.ENTER,
     ]
 
-    assert simulate(tabs, keys) == "b"
+    with simulate_keys(keys):
+        assert tabs() == "b"
 
 
 @pytest.mark.parametrize(
@@ -56,11 +56,13 @@ def test_that_shift_tab_move_to_previous(tabs: Tabs):
     ids=["left", "right"],
 )
 def test_that_cursor_doesnt_rollover(tabs: Tabs, keys, expected):
-    assert simulate(tabs, keys) == expected
+    with simulate_keys(keys):
+        assert tabs() == expected
 
 
 def test_that_cursor_starts_at_index(tabs: Tabs):
-    assert simulate(tabs, [readchar.key.ENTER], index=1) == "b"
+    with simulate_keys([readchar.key.ENTER]):
+        assert tabs(index=1) == "b"
 
 
 @pytest.mark.parametrize("index", [-1, 3])
@@ -75,8 +77,11 @@ def test_ask():
 
 
 def test_that_answer_is_rendered(tabs: Tabs):
-    with tabs.console.capture() as capture:
-        simulate(tabs, [readchar.key.RIGHT, readchar.key.ENTER])
+    with (
+        tabs.console.capture() as capture,
+        simulate_keys([readchar.key.RIGHT, readchar.key.ENTER]),
+    ):
+        tabs()
 
     assert capture.get() == "Select a choice: b\n"
 

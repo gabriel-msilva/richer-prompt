@@ -3,7 +3,8 @@ import readchar
 
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.multiselect import MultiSelect
-from tests.utils import assert_snapshot, simulate, simulate_keys
+from richer_prompt.testing import simulate_keys
+from tests.utils import assert_snapshot
 
 
 @pytest.fixture
@@ -12,69 +13,54 @@ def multiselect(console) -> MultiSelect:
 
 
 def test_that_choices_are_selected(multiselect: MultiSelect):
-    result = simulate(
-        multiselect,
-        [
-            readchar.key.ENTER,
-            readchar.key.DOWN,
-            readchar.key.DOWN,
-            readchar.key.ENTER,
-            readchar.key.DOWN,
-            readchar.key.ENTER,
-        ],
-    )
+    keys = [
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+    ]
 
-    assert result == ["a", "c"]
+    with simulate_keys(keys):
+        assert multiselect() == ["a", "c"]
 
 
 def test_that_choices_can_be_unselected(multiselect: MultiSelect):
-    result = simulate(
-        multiselect,
-        [
-            readchar.key.ENTER,
-            readchar.key.DOWN,
-            readchar.key.ENTER,
-            readchar.key.ENTER,
-            readchar.key.DOWN,
-            readchar.key.DOWN,
-            readchar.key.ENTER,
-        ],
-    )
+    keys = [
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+    ]
 
-    assert result == ["a"]
+    with simulate_keys(keys):
+        assert multiselect() == ["a"]
 
 
 def test_that_space_toggles(multiselect: MultiSelect):
-    result = simulate(
-        multiselect,
-        [readchar.key.SPACE, readchar.key.UP, readchar.key.ENTER],
-    )
-
-    assert result == ["a"]
+    with simulate_keys([readchar.key.SPACE, readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect() == ["a"]
 
 
 def test_that_space_toggle_on_submit_is_noop(multiselect: MultiSelect):
-    result = simulate(
-        multiselect,
-        [readchar.key.UP, readchar.key.SPACE, readchar.key.ENTER],
-    )
-
-    assert result == []
+    with simulate_keys([readchar.key.UP, readchar.key.SPACE, readchar.key.ENTER]):
+        assert multiselect() == []
 
 
 def test_that_number_key_move_and_check(multiselect: MultiSelect):
-    result = simulate(
-        multiselect,
-        ["0", "2", readchar.key.DOWN, readchar.key.DOWN, readchar.key.ENTER],
-    )
+    keys = ["0", "2", readchar.key.DOWN, readchar.key.DOWN, readchar.key.ENTER]
 
-    assert result == ["b"]
+    with simulate_keys(keys):
+        assert multiselect() == ["b"]
 
 
 def test_that_number_key_out_of_range_is_ignored(multiselect: MultiSelect):
-    result = simulate(multiselect, ["0", "4", readchar.key.UP, readchar.key.ENTER])
-
-    assert result == []
+    with simulate_keys(["0", "4", readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect() == []
 
 
 def test_rollover(multiselect: MultiSelect):
@@ -88,23 +74,18 @@ def test_rollover(multiselect: MultiSelect):
         readchar.key.ENTER,
     ]
 
-    assert simulate(multiselect, keys) == ["a"]
+    with simulate_keys(keys):
+        assert multiselect() == ["a"]
 
 
 def test_that_cursor_starts_at_index(multiselect: MultiSelect):
-    result = simulate(
-        multiselect,
-        [readchar.key.ENTER, readchar.key.DOWN, readchar.key.ENTER],
-        index=2,
-    )
-
-    assert result == ["c"]
+    with simulate_keys([readchar.key.ENTER, readchar.key.DOWN, readchar.key.ENTER]):
+        assert multiselect(index=2) == ["c"]
 
 
 def test_that_cursor_can_start_at_submit(multiselect: MultiSelect):
-    result = simulate(multiselect, [readchar.key.ENTER], index=3)
-
-    assert result == []
+    with simulate_keys([readchar.key.ENTER]):
+        assert multiselect(index=3) == []
 
 
 @pytest.mark.parametrize("index", [-1, 4])
@@ -122,11 +103,8 @@ def test_that_index_out_of_range_raises(multiselect, index):
     ],
 )
 def test_that_default_is_prechecked(multiselect, default, expected):
-    result = simulate(
-        multiselect, [readchar.key.UP, readchar.key.ENTER], default=default
-    )
-
-    assert result == expected
+    with simulate_keys([readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect(default=default) == expected
 
 
 def test_that_default_indices_out_of_range_raises(multiselect):
@@ -142,39 +120,33 @@ def test_ask():
 
 
 def test_that_answer_is_not_affected_by_subsequent_calls(multiselect: MultiSelect):
-    first = simulate(
-        multiselect, [readchar.key.ENTER, readchar.key.UP, readchar.key.ENTER]
-    )
+    with simulate_keys([readchar.key.ENTER, readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect() == ["a"]
 
-    assert first == ["a"]
+    keys = [
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+    ]
 
-    second = simulate(
-        multiselect,
-        [
-            readchar.key.DOWN,
-            readchar.key.ENTER,
-            readchar.key.DOWN,
-            readchar.key.DOWN,
-            readchar.key.ENTER,
-        ],
-    )
-
-    assert second == ["b"]
+    with simulate_keys(keys):
+        assert multiselect() == ["b"]
 
 
 def test_that_answer_is_rendered(multiselect: MultiSelect):
-    with multiselect.console.capture() as capture:
-        simulate(
-            multiselect,
-            [
-                readchar.key.ENTER,
-                readchar.key.DOWN,
-                readchar.key.DOWN,
-                readchar.key.ENTER,
-                readchar.key.DOWN,
-                readchar.key.ENTER,
-            ],
-        )
+    keys = [
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+        readchar.key.DOWN,
+        readchar.key.ENTER,
+    ]
+
+    with multiselect.console.capture() as capture, simulate_keys(keys):
+        multiselect()
 
     assert capture.get() == "Select multiple choices: a, c\n"
 

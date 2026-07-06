@@ -5,7 +5,7 @@ import readchar
 
 from richer_prompt import NotInteractiveError, Select
 from richer_prompt.session import _eof_keys
-from tests.utils import simulate
+from richer_prompt.testing import simulate_keys
 
 
 @pytest.fixture
@@ -29,13 +29,17 @@ def test_that_missing_stdin_raises(select: Select):
         select()
 
 
-def test_that_injected_read_key_skips_the_tty_check(select: Select):
-    assert simulate(select, [readchar.key.ENTER]) == "a"
+def test_that_simulated_keys_skip_the_tty_check(select: Select):
+    with simulate_keys([readchar.key.ENTER]):
+        assert select() == "a"
 
 
 def test_that_ctrl_d_raises_eof_error(select: Select):
-    with pytest.raises(EOFError):
-        simulate(select, [readchar.key.DOWN, readchar.key.CTRL_D])
+    with (
+        simulate_keys([readchar.key.DOWN, readchar.key.CTRL_D]),
+        pytest.raises(EOFError),
+    ):
+        select()
 
 
 @pytest.mark.parametrize(
@@ -51,12 +55,19 @@ def test_that_eof_keys_match_the_platform_convention(platform, expected):
 
 
 def test_that_ctrl_c_propagates(select: Select):
-    with pytest.raises(KeyboardInterrupt):
-        simulate(select, [readchar.key.DOWN, KeyboardInterrupt()])
+    with (
+        simulate_keys([readchar.key.DOWN, readchar.key.CTRL_C]),
+        pytest.raises(KeyboardInterrupt),
+    ):
+        select()
 
 
 def test_that_no_answer_is_rendered_on_cancel(select: Select):
-    with select.console.capture() as capture, pytest.raises(EOFError):
-        simulate(select, [readchar.key.CTRL_D])
+    with (
+        select.console.capture() as capture,
+        simulate_keys([readchar.key.CTRL_D]),
+        pytest.raises(EOFError),
+    ):
+        select()
 
     assert capture.get() == ""

@@ -3,7 +3,8 @@ import readchar
 
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.select import Select
-from tests.utils import assert_snapshot, simulate, simulate_keys
+from richer_prompt.testing import simulate_keys
+from tests.utils import assert_snapshot
 
 
 @pytest.fixture
@@ -12,17 +13,15 @@ def select(console) -> Select:
 
 
 def test_that_choice_is_selected(select: Select):
-    result = simulate(
-        select,
-        [
-            readchar.key.DOWN,
-            readchar.key.DOWN,
-            readchar.key.UP,
-            readchar.key.ENTER,
-        ],
-    )
+    keys = [
+        readchar.key.DOWN,
+        readchar.key.DOWN,
+        readchar.key.UP,
+        readchar.key.ENTER,
+    ]
 
-    assert result == "b"
+    with simulate_keys(keys):
+        assert select() == "b"
 
 
 @pytest.mark.parametrize(
@@ -36,7 +35,8 @@ def test_that_choice_is_selected(select: Select):
     ],
 )
 def test_that_number_key_selects(select: Select, number: int, expected: str):
-    assert simulate(select, [str(number), readchar.key.ENTER]) == expected
+    with simulate_keys([str(number), readchar.key.ENTER]):
+        assert select() == expected
 
 
 @pytest.mark.parametrize(
@@ -56,11 +56,13 @@ def test_that_number_key_selects(select: Select, number: int, expected: str):
     ids=["up", "down"],
 )
 def test_rollover(select: Select, keys, expected):
-    assert simulate(select, keys) == expected
+    with simulate_keys(keys):
+        assert select() == expected
 
 
 def test_that_cursor_starts_at_index(select: Select):
-    assert simulate(select, [readchar.key.ENTER], index=1) == "b"
+    with simulate_keys([readchar.key.ENTER]):
+        assert select(index=1) == "b"
 
 
 @pytest.mark.parametrize("index", [-1, 3])
@@ -75,8 +77,11 @@ def test_ask():
 
 
 def test_that_answer_is_rendered(select: Select):
-    with select.console.capture() as capture:
-        simulate(select, [readchar.key.DOWN, readchar.key.ENTER])
+    with (
+        select.console.capture() as capture,
+        simulate_keys([readchar.key.DOWN, readchar.key.ENTER]),
+    ):
+        select()
 
     assert capture.get() == "Select a choice: b\n"
 

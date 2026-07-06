@@ -1,5 +1,6 @@
 import sys
 from collections.abc import Callable
+from contextvars import ContextVar
 from typing import Final, Protocol, TypeVar
 
 import readchar
@@ -49,21 +50,27 @@ def _eof_keys(platform: str = sys.platform) -> frozenset[str]:
 EOF_KEYS: Final = _eof_keys()
 
 
-def run(
-    widget: Widget[T],
-    console: Console,
-    *,
-    read_key: Callable[[], str] | None = None,
-) -> T:
-    # resolved at call time so tests can patch `readchar.readkey`
-    if read_key is None:
-        if sys.stdin is None or not sys.stdin.isatty():
-            raise NotInteractiveError(
-                "prompts require an interactive terminal, but stdin is not a TTY"
-            )
+_key_source_override: ContextVar[Callable[[], str] | None] = ContextVar(
+    "richer_prompt_key_source_override", default=None
+)
 
-        read_key = readchar.readkey
 
+def _default_key_source() -> Callable[[], str]:
+    """The real keyboard (requires an interactive terminal), unless overridden."""
+    override = _key_source_override.get()
+    if override is not None:
+        return override
+
+    if sys.stdin is None or not sys.stdin.isatty():
+        raise NotInteractiveError(
+            "prompts require an interactive terminal, but stdin is not a TTY"
+        )
+
+    return readchar.readkey
+
+
+def run(widget: Widget[T], console: Console) -> T:
+    read_key = _default_key_source()
     theme = Theme(missing_styles(console), inherit=False)
 
     with console.use_theme(theme):
