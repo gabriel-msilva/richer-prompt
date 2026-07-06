@@ -7,7 +7,13 @@ from rich.console import Console, Group
 from rich.text import Text, TextType
 
 from richer_prompt.choices import Choice, ensure_choice
-from richer_prompt.rendering import LEFT_ARROW, RIGHT_ARROW, ensure_text
+from richer_prompt.rendering import (
+    LEFT_ARROW,
+    RIGHT_ARROW,
+    arrow_cell,
+    ensure_text,
+    tab_cell,
+)
 from richer_prompt.session import run
 
 T = TypeVar("T")
@@ -71,29 +77,13 @@ class TabsWidget(Generic[T]):
             rows.append(self.message)
             rows.append(Text())
 
-        tabs = Text()
-
-        tabs.append(LEFT_ARROW, style="dim" if self.cursor == 0 else "")
-        tabs.append(" ")
-
-        for i, choice in enumerate(self.choices):
-            if i > 0:
-                tabs.append(" ")
-
-            is_focused = i == self.cursor
-
-            tabs.append(
-                f" {choice.display} ",
-                style="richer_prompt.tab.active" if is_focused else "richer_prompt.tab",
-            )
-
-        tabs.append(" ")
-        tabs.append(
-            RIGHT_ARROW,
-            style="dim" if self.cursor == len(self.choices) - 1 else "",
+        cells = [arrow_cell(LEFT_ARROW, self.cursor == 0)]
+        cells.extend(
+            tab_cell(choice, i == self.cursor) for i, choice in enumerate(self.choices)
         )
+        cells.append(arrow_cell(RIGHT_ARROW, self.cursor == len(self.choices) - 1))
 
-        rows.append(tabs)
+        rows.append(Text(" ").join(cells))
         rows.append(Text(self.current.description, style="richer_prompt.description"))
 
         return Group(*rows)
