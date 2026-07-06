@@ -17,3 +17,5 @@ API Reference
 
 .. autoclass:: richer_prompt.Choice
    :members:
+
+.. autoexception:: richer_prompt.NotInteractiveError

@@ -1,11 +1,9 @@
-from unittest.mock import patch
-
 import pytest
 import readchar
 
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.select import Select
-from tests.utils import assert_snapshot, simulate
+from tests.utils import assert_snapshot, simulate, simulate_keys
 
 
 @pytest.fixture
@@ -72,10 +70,7 @@ def test_that_index_out_of_range_raises(select: Select, index):
 
 
 def test_ask():
-    with patch(
-        "richer_prompt.session.readchar.readkey",
-        side_effect=[readchar.key.UP, readchar.key.ENTER],
-    ):
+    with simulate_keys([readchar.key.UP, readchar.key.ENTER]):
         assert Select.ask("Select a choice:", ["a", "b", "c"], index=1) == "a"
 
 

@@ -120,3 +120,17 @@ The following style names are available for customization:
         * - ``richer_prompt.tab.active``
           - ``magenta reverse``
           - Style for the currently active tab.
+
+Interactivity and cancellation
+------------------------------
+
+Prompts read single keystrokes, so they require an interactive terminal.
+When standard input is not a TTY (for example a pipe or a CI job),
+prompts raise :py:exc:`richer_prompt.NotInteractiveError` before rendering anything.
+
+While a prompt is running:
+
+- :kbd:`Ctrl+C` raises :py:exc:`KeyboardInterrupt`.
+- :kbd:`Ctrl+D` (or :kbd:`Ctrl+Z` on Windows) raises :py:exc:`EOFError`.
+
+Handle both as you would for any other :py:func:`input` call.

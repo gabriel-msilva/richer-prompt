@@ -1,5 +1,6 @@
+import sys
 from collections.abc import Callable
-from typing import Protocol, TypeVar
+from typing import Final, Protocol, TypeVar
 
 import readchar
 from rich.console import Console, RenderableType
@@ -33,6 +34,21 @@ class Widget(Protocol[T_co]):
     def result(self) -> T_co: ...
 
 
+class NotInteractiveError(RuntimeError):
+    """Raised when a prompt is run without an interactive terminal."""
+
+
+def _eof_keys(platform: str = sys.platform) -> frozenset[str]:
+    # Ctrl+Z means EOF only on Windows; on *nix it is the suspend gesture
+    if platform == "win32":
+        return frozenset({readchar.key.CTRL_D, readchar.key.CTRL_Z})
+
+    return frozenset({readchar.key.CTRL_D})
+
+
+EOF_KEYS: Final = _eof_keys()
+
+
 def run(
     widget: Widget[T],
     console: Console,
@@ -41,6 +57,11 @@ def run(
 ) -> T:
     # resolved at call time so tests can patch `readchar.readkey`
     if read_key is None:
+        if sys.stdin is None or not sys.stdin.isatty():
+            raise NotInteractiveError(
+                "prompts require an interactive terminal, but stdin is not a TTY"
+            )
+
         read_key = readchar.readkey
 
     theme = Theme(missing_styles(console), inherit=False)
@@ -53,7 +74,11 @@ def run(
             transient=True,
         ) as live:
             while not widget.submitted:
-                widget.handle_key(read_key())
+                key = read_key()
+                if key in EOF_KEYS:
+                    raise EOFError("end of input")
+
+                widget.handle_key(key)
                 live.update(widget.render(), refresh=True)
 
         console.print(widget.answer())

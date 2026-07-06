@@ -1,11 +1,9 @@
-from unittest.mock import patch
-
 import pytest
 import readchar
 
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.multiselect import MultiSelect
-from tests.utils import assert_snapshot, simulate
+from tests.utils import assert_snapshot, simulate, simulate_keys
 
 
 @pytest.fixture
@@ -139,10 +137,7 @@ def test_that_default_indices_out_of_range_raises(multiselect):
 
 
 def test_ask():
-    with patch(
-        "richer_prompt.session.readchar.readkey",
-        side_effect=[readchar.key.ENTER, readchar.key.DOWN, readchar.key.ENTER],
-    ):
+    with simulate_keys([readchar.key.ENTER, readchar.key.DOWN, readchar.key.ENTER]):
         assert MultiSelect.ask("Pick", ["a", "b", "c"], index=2) == ["c"]
 
 
