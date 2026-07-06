@@ -17,6 +17,12 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.56
+    hooks:
+      - id: ty
+        args: [--all-groups]
+
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.11.19
     hooks:
@@ -39,11 +45,3 @@ repos:
     - id: codespell
       additional_dependencies:
         - tomli
-
-  - repo: local
-    hooks:
-      - id: ty
-        name: ty check
-        entry: uv run --all-groups --active ty check --fix
-        language: python
-        files: \.py$
