@@ -39,6 +39,36 @@ def test_that_number_key_selects(select: Select, number: int, expected: str):
         assert select() == expected
 
 
+def test_that_numbering_is_disabled_for_more_than_9_choices(console):
+    select = Select(
+        "Select a choice:", [f"Choice {i}" for i in range(1, 13)], console=console
+    )
+
+    with simulate_keys(["5", readchar.key.ENTER]):
+        assert select() == "Choice 1"
+
+
+def test_that_digit_keys_work_when_numbers_enabled(console):
+    select = Select(
+        "Select a choice:",
+        [f"Choice {i}" for i in range(1, 13)],
+        numbered=True,
+        console=console,
+    )
+
+    with simulate_keys(["5"]):
+        assert select() == "Choice 5"
+
+
+def test_that_digit_keys_are_inert_when_numbering_disabled(console):
+    select = Select(
+        "Select a choice:", ["a", "b", "c"], numbered=False, console=console
+    )
+
+    with simulate_keys(["2", readchar.key.ENTER]):
+        assert select() == "a"
+
+
 @pytest.mark.parametrize(
     ("keys", "expected"),
     [
@@ -193,7 +223,9 @@ def test_that_hint_is_hidden():
 
 
 def test_that_10_or_more_choices_are_aligned():
-    prompt = Select("Select a choice:", [f"Choice {i}" for i in range(1, 11)])
+    prompt = Select(
+        "Select a choice:", [f"Choice {i}" for i in range(1, 11)], numbered=True
+    )
     widget = prompt._build_widget()
 
     expected = """
@@ -209,6 +241,30 @@ def test_that_10_or_more_choices_are_aligned():
        8. Choice 8
        9. Choice 9
       10. Choice 10
+
+    ↑↓ to navigate · Enter to select
+    """
+
+    assert_snapshot(widget, expected)
+
+
+def test_that_numbers_auto_hide_for_more_than_9_choices():
+    prompt = Select("Select a choice:", [f"Choice {i}" for i in range(1, 11)])
+    widget = prompt._build_widget()
+
+    expected = """
+    Select a choice:
+
+    ❯ Choice 1
+      Choice 2
+      Choice 3
+      Choice 4
+      Choice 5
+      Choice 6
+      Choice 7
+      Choice 8
+      Choice 9
+      Choice 10
 
     ↑↓ to navigate · Enter to select
     """

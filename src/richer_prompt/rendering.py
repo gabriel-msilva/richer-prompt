@@ -31,6 +31,13 @@ def cursor_cell(pointer: str, active: bool) -> Text:
     return Text(" " * len(pointer))
 
 
+def resolve_numbered(numbered: bool | None, choices: list[Choice]) -> bool:
+    if numbered is None:
+        return len(choices) < 10
+
+    return numbered
+
+
 def number_cell(index: int, width: int) -> Text:
     return Text(f"{index + 1}. ".rjust(width + 2), style="richer_prompt.description")
 

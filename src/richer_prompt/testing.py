@@ -16,6 +16,8 @@ def simulate_keys(keys: Sequence[str]) -> Iterator[None]:
     Prompts read the given keys in order instead of the real keyboard,
     so no interactive terminal is required.
 
+    .. versionadded:: 0.2.0
+
     Parameters
     ----------
     keys: sequence of str

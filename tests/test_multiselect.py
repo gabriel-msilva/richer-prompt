@@ -52,7 +52,7 @@ def test_that_space_toggle_on_submit_is_noop(multiselect: MultiSelect):
 
 
 def test_that_number_key_move_and_check(multiselect: MultiSelect):
-    keys = ["0", "2", readchar.key.DOWN, readchar.key.DOWN, readchar.key.ENTER]
+    keys = ["2", readchar.key.DOWN, readchar.key.DOWN, readchar.key.ENTER]
 
     with simulate_keys(keys):
         assert multiselect() == ["b"]
@@ -60,6 +60,40 @@ def test_that_number_key_move_and_check(multiselect: MultiSelect):
 
 def test_that_number_key_out_of_range_is_ignored(multiselect: MultiSelect):
     with simulate_keys(["0", "4", readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect() == []
+
+
+def test_that_numbering_is_disabled_for_more_than_9_choices(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:",
+        [f"Choice {i}" for i in range(1, 13)],
+        console=console,
+    )
+
+    with simulate_keys(["1", readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect() == []
+
+
+def test_that_digit_keys_work_when_numbers_enabled(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:",
+        [f"Choice {i}" for i in range(1, 13)],
+        numbered=True,
+        console=console,
+    )
+
+    with simulate_keys(["2", readchar.key.UP, readchar.key.UP, readchar.key.ENTER]):
+        assert multiselect() == ["Choice 2"]
+
+
+def test_that_digit_keys_are_inert_when_numbering_disabled(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:", ["a", "b", "c"], numbered=False, console=console
+    )
+
+    keys = ["2", readchar.key.UP, readchar.key.ENTER]
+
+    with simulate_keys(keys):
         assert multiselect() == []
 
 
@@ -284,7 +318,7 @@ def test_that_hint_is_hidden():
 
 def test_that_10_or_more_choices_are_aligned():
     prompt = MultiSelect(
-        "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)]
+        "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)], numbered=True
     )
     widget = prompt._build_widget()
 
@@ -302,6 +336,33 @@ def test_that_10_or_more_choices_are_aligned():
        9. [ ] Choice 9
       10. [ ] Choice 10
           Submit
+
+    ↑↓ to navigate · Enter to select · Submit to finish
+    """
+
+    assert_snapshot(widget, expected)
+
+
+def test_that_numbers_auto_hide_for_more_than_9_choices():
+    prompt = MultiSelect(
+        "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)]
+    )
+    widget = prompt._build_widget()
+
+    expected = """
+    Select multiple choices:
+
+    ❯ [ ] Choice 1
+      [ ] Choice 2
+      [ ] Choice 3
+      [ ] Choice 4
+      [ ] Choice 5
+      [ ] Choice 6
+      [ ] Choice 7
+      [ ] Choice 8
+      [ ] Choice 9
+      [ ] Choice 10
+      Submit
 
     ↑↓ to navigate · Enter to select · Submit to finish
     """

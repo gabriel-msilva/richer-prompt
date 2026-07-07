@@ -16,6 +16,7 @@ from richer_prompt.rendering import (
     ensure_text,
     format_hint,
     number_cell,
+    resolve_numbered,
 )
 from richer_prompt.session import run
 
@@ -30,7 +31,7 @@ class SelectWidget(Generic[T]):
         *,
         message: TextType,
         cursor_pointer: str = RIGHT_POINTER,
-        numbered: bool = True,
+        numbered: bool | None = None,
         show_hint: bool = True,
     ):
         if cursor < 0 or cursor >= len(choices):
@@ -40,7 +41,7 @@ class SelectWidget(Generic[T]):
         self.cursor = cursor
         self.message = ensure_text(message, default_style="richer_prompt.title")
         self.cursor_pointer = cursor_pointer
-        self.numbered = numbered
+        self.numbered = resolve_numbered(numbered, choices)
         self.show_hint = show_hint
         self._submitted = False
 
@@ -66,7 +67,7 @@ class SelectWidget(Generic[T]):
                 self.move(-1)
             case readchar.key.ENTER:
                 self.submit()
-            case _ if key.isdecimal():
+            case _ if self.numbered and key.isdecimal():
                 n = int(key) - 1
                 if 0 <= n < len(self.choices):
                     self.cursor = n
@@ -134,6 +135,18 @@ class Select(Generic[T]):
         The values to choose from.
         Each choice can be a raw value or an instance of :py:class:`Choice`,
         which allows customization of labels and descriptions.
+    cursor_pointer: str, default "❯"
+        The string to use as the cursor pointer.
+    numbered: bool or None, default None
+        Whether to display numbers next to the choices.
+        If `None`, numbers are shown only when there are at most 9 choices,
+        so every displayed number works as a digit shortcut.
+        `True` always shows numbers (digit shortcuts still only reach choices 1-9);
+        `False` never shows them and disables digit shortcuts.
+
+        .. versionchanged:: 0.2.0
+            The default behavior changed from always showing numbers to only showing
+            them when there are at most 9 choices.
     show_hint: bool, default True
         Whether to show a hint about how to select choices.
     console: rich.console.Console, optional
@@ -152,7 +165,7 @@ class Select(Generic[T]):
         choices: Iterable[Choice[T] | T],
         *,
         cursor_pointer: str = RIGHT_POINTER,
-        numbered: bool = True,
+        numbered: bool | None = None,
         show_hint: bool = True,
         console: Console | None = None,
     ):
@@ -174,7 +187,7 @@ class Select(Generic[T]):
         *,
         index: int = 0,
         cursor_pointer: str = RIGHT_POINTER,
-        numbered: bool = True,
+        numbered: bool | None = None,
         show_hint: bool = True,
         console: Console | None = None,
     ) -> T:
@@ -193,8 +206,18 @@ class Select(Generic[T]):
             The index of the choice to have the cursor start on.
         cursor_pointer: str, default "❯"
             The string to use as the cursor pointer.
-        numbered: bool, default True
+        numbered: bool or None, default None
             Whether to display numbers next to the choices.
+            If `None`, numbers are shown only when there are at most 9 choices,
+            so every displayed number works as a digit shortcut.
+            `True` always shows numbers
+            (digit shortcuts still only reach choices 1-9);
+            `False` never shows them and disables digit shortcuts.
+
+            .. versionchanged:: 0.2.0
+                The default behavior changed from always showing numbers to only showing
+                them when there are at most 9 choices.
+
         show_hint: bool, default True
             Whether to show a hint about how to select choices.
         console: rich.console.Console, optional

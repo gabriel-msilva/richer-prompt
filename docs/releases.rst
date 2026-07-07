@@ -10,6 +10,9 @@ API changes
 ~~~~~~~~~~~
 
 - Added :py:func:`richer_prompt.testing.simulate_keys` to simulate keyboard input when testing code that runs prompts.
+- The ``numbered`` option of :py:class:`Select` and :py:class:`MultiSelect` now defaults to ``None``,
+  which displays choice numbers only when the prompt has at most 9 choices, so every displayed number works as a digit shortcut.
+  Pass ``True`` or ``False`` to force numbers (and their digit shortcuts) on or off.
 
 Fixes
 ~~~~~
