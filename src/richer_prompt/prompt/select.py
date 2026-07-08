@@ -1,11 +1,11 @@
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
-import readchar
 from rich import get_console
 from rich.console import Console, Group
 from rich.text import Text, TextType
 
+from richer_prompt import keys
 from richer_prompt.choices import Choice, ensure_choice
 from richer_prompt.rendering import (
     DOWN_ARROW,
@@ -61,11 +61,11 @@ class SelectWidget(Generic[T]):
 
     def handle_key(self, key: str) -> bool:
         match key:
-            case readchar.key.DOWN:
+            case keys.DOWN:
                 self.move(1)
-            case readchar.key.UP:
+            case keys.UP:
                 self.move(-1)
-            case readchar.key.ENTER:
+            case keys.ENTER:
                 self.submit()
             case _ if self.numbered and key.isdecimal():
                 n = int(key) - 1

@@ -1,8 +1,7 @@
 import contextlib
 from collections.abc import Callable, Iterator, Sequence
 
-import readchar
-
+from richer_prompt.keys import CTRL_C
 from richer_prompt.session import _key_source_override
 
 __all__ = ["simulate_keys"]
@@ -21,10 +20,10 @@ def simulate_keys(keys: Sequence[str]) -> Iterator[None]:
     Parameters
     ----------
     keys: sequence of str
-        The keys to deliver, e.g. :py:data:`readchar.key.DOWN` or plain characters.
-        Control keys behave like the real keyboard: ``readchar.key.CTRL_C``
-        raises ``KeyboardInterrupt`` and ``readchar.key.CTRL_D`` raises
-        ``EOFError``.
+        The keys to deliver, e.g. :py:data:`richer_prompt.keys.DOWN` or plain
+        characters. Control keys behave like the real keyboard:
+        ``richer_prompt.keys.CTRL_C`` raises ``KeyboardInterrupt`` and
+        ``richer_prompt.keys.CTRL_D`` raises ``EOFError``.
 
     Raises
     ------
@@ -33,10 +32,9 @@ def simulate_keys(keys: Sequence[str]) -> Iterator[None]:
 
     Examples
     --------
-    >>> import readchar
-    >>> from richer_prompt import Select
+    >>> from richer_prompt import keys, Select
     >>> from richer_prompt.testing import simulate_keys
-    >>> with simulate_keys([readchar.key.DOWN, readchar.key.ENTER]):
+    >>> with simulate_keys([keys.DOWN, keys.ENTER]):
     ...     Select.ask("Choose a color:", ["Red", "Green", "Blue"])
     'Green'
     """
@@ -59,8 +57,8 @@ def _scripted_reader(keys: Sequence[str]) -> Callable[[], str]:
                 "ran out of simulated keys, but the prompt is still waiting for input"
             ) from None
 
-        # what readchar.readkey() does with Ctrl+C
-        if key == readchar.key.CTRL_C:
+        # mirror how the real key source surfaces Ctrl+C
+        if key == CTRL_C:
             raise KeyboardInterrupt
 
         return key

@@ -1,18 +1,35 @@
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import AbstractContextManager, contextmanager, nullcontext
 from contextvars import ContextVar
 from typing import Final, Protocol, TypeVar
 
-import readchar
+from blessed import Terminal
+from blessed.keyboard import Keystroke
 from rich.console import Console, RenderableType
 from rich.live import Live
 from rich.text import Text
 from rich.theme import Theme
 
+from richer_prompt import keys
 from richer_prompt.default_styles import missing_styles
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
+
+EOF_KEYS: Final = (
+    frozenset({keys.CTRL_D, keys.CTRL_Z})
+    if sys.platform == "win32"
+    else frozenset({keys.CTRL_D})
+)
+
+_key_source_override: ContextVar[Callable[[], str] | None] = ContextVar(
+    "richer_prompt_key_source_override", default=None
+)
+
+
+class NotInteractiveError(RuntimeError):
+    """Raised when a prompt is run without an interactive terminal."""
 
 
 class Widget(Protocol[T_co]):
@@ -35,45 +52,10 @@ class Widget(Protocol[T_co]):
     def result(self) -> T_co: ...
 
 
-class NotInteractiveError(RuntimeError):
-    """Raised when a prompt is run without an interactive terminal."""
-
-
-def _eof_keys(platform: str = sys.platform) -> frozenset[str]:
-    # Ctrl+Z means EOF only on Windows; on *nix it is the suspend gesture
-    if platform == "win32":
-        return frozenset({readchar.key.CTRL_D, readchar.key.CTRL_Z})
-
-    return frozenset({readchar.key.CTRL_D})
-
-
-EOF_KEYS: Final = _eof_keys()
-
-
-_key_source_override: ContextVar[Callable[[], str] | None] = ContextVar(
-    "richer_prompt_key_source_override", default=None
-)
-
-
-def _default_key_source() -> Callable[[], str]:
-    """The real keyboard (requires an interactive terminal), unless overridden."""
-    override = _key_source_override.get()
-    if override is not None:
-        return override
-
-    if sys.stdin is None or not sys.stdin.isatty():
-        raise NotInteractiveError(
-            "prompts require an interactive terminal, but stdin is not a TTY"
-        )
-
-    return readchar.readkey
-
-
 def run(widget: Widget[T], console: Console) -> T:
-    read_key = _default_key_source()
     theme = Theme(missing_styles(console), inherit=False)
 
-    with console.use_theme(theme):
+    with _key_source() as read_key, console.use_theme(theme):
         with Live(
             widget.render(),
             console=console,
@@ -91,3 +73,36 @@ def run(widget: Widget[T], console: Console) -> T:
         console.print(widget.answer())
 
     return widget.result()
+
+
+def _key_source() -> AbstractContextManager[Callable[[], str]]:
+    """The real keyboard, unless a test has overridden the source."""
+    override = _key_source_override.get()
+    if override is not None:
+        return nullcontext(override)
+
+    return _real_key_source()
+
+
+@contextmanager
+def _real_key_source() -> Iterator[Callable[[], str]]:
+    """Read keys from the real keyboard; requires an interactive terminal."""
+    if sys.stdin is None or not sys.stdin.isatty():
+        raise NotInteractiveError(
+            "prompts require an interactive terminal, but stdin is not a TTY"
+        )
+
+    term = Terminal()
+    with term.cbreak():
+        yield lambda: _to_token(term.inkey())
+
+
+def _to_token(keystroke: Keystroke) -> str:
+    """
+    Map a blessed keystroke to a token from :mod:`richer_prompt.keys`.
+
+    Named keystrokes (arrows, Enter, Tab, Ctrl combos) carry a ``name`` such
+    as "KEY_DOWN", while printable keys carry none and are their own character.
+    See :func:`blessed.keyboard.get_curses_keycodes` for the full list of names.
+    """
+    return keystroke.name or str(keystroke)

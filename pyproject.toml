@@ -10,7 +10,7 @@ authors = [{ name = "Gabriel Mello Silva", email = "msilva-gabriel@proton.me" }]
 readme = "README.md"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-dependencies = ["readchar>=4.0.0", "rich>=13.0.0"]
+dependencies = ["blessed>=1.46.0", "rich>=13.0.0"]
 
 [dependency-groups]
 dev = [

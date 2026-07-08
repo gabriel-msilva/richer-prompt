@@ -1,3 +1,4 @@
+from richer_prompt import keys
 from richer_prompt._version import get_version_dict
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.multiselect import MultiSelect
@@ -12,6 +13,7 @@ __all__ = [
     "Tabs",
     "Choice",
     "NotInteractiveError",
+    "keys",
 ]
 
 __version__ = get_version_dict()["version"]

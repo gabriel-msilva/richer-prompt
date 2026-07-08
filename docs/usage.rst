@@ -144,9 +144,7 @@ so no interactive terminal is required.
 
 .. code-block:: python
 
-    import readchar
-
-    from richer_prompt import Select
+    from richer_prompt import keys, Select
     from richer_prompt.testing import simulate_keys
 
 
@@ -155,11 +153,11 @@ so no interactive terminal is required.
 
 
     def test_pick_color():
-        with simulate_keys([readchar.key.DOWN, readchar.key.ENTER]):
+        with simulate_keys([keys.DOWN, keys.ENTER]):
             assert pick_color() == "Green"
 
 If the keys run out while a prompt is still waiting for input,
 the key read raises :py:exc:`AssertionError`.
 Control keys behave like the real keyboard:
-``readchar.key.CTRL_C`` raises :py:exc:`KeyboardInterrupt`
-and ``readchar.key.CTRL_D`` raises :py:exc:`EOFError`.
+``keys.CTRL_C`` raises :py:exc:`KeyboardInterrupt`
+and ``keys.CTRL_D`` raises :py:exc:`EOFError`.

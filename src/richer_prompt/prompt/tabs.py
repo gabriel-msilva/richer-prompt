@@ -1,11 +1,11 @@
 from collections.abc import Iterable
-from typing import Final, Generic, TypeVar
+from typing import Generic, TypeVar
 
-import readchar
 from rich import get_console
 from rich.console import Console, Group
 from rich.text import Text, TextType
 
+from richer_prompt import keys
 from richer_prompt.choices import Choice, ensure_choice
 from richer_prompt.rendering import (
     LEFT_ARROW,
@@ -17,12 +17,6 @@ from richer_prompt.rendering import (
 from richer_prompt.session import run
 
 T = TypeVar("T")
-
-_TABS_PREVIOUS_KEYS: Final = frozenset(
-    key
-    for key in (readchar.key.LEFT, getattr(readchar.key, "SHIFT_TAB", None))
-    if key is not None
-)
 
 
 class TabsWidget(Generic[T]):
@@ -59,11 +53,11 @@ class TabsWidget(Generic[T]):
 
     def handle_key(self, key: str) -> bool:
         match key:
-            case readchar.key.RIGHT | readchar.key.TAB:
+            case keys.RIGHT | keys.TAB:
                 self.move(1)
-            case k if k in _TABS_PREVIOUS_KEYS:
+            case keys.LEFT | keys.SHIFT_TAB:
                 self.move(-1)
-            case readchar.key.ENTER:
+            case keys.ENTER:
                 self.submit()
             case _:
                 return False
