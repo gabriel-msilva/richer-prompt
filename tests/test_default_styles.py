@@ -1,11 +1,10 @@
 import io
 
 import pytest
-import readchar
 from rich.console import Console
 from rich.theme import Theme
 
-from richer_prompt import Select
+from richer_prompt import Select, keys
 from richer_prompt.default_styles import RICHER_PROMPT_STYLES, missing_styles
 from richer_prompt.testing import simulate_keys
 
@@ -39,7 +38,7 @@ def test_that_default_styles_are_applied_at_prompt_time():
         width=60,
     )
 
-    with simulate_keys([readchar.key.ENTER]):
+    with simulate_keys([keys.ENTER]):
         Select.ask("Pick:", ["a", "b"], console=console)
 
     # default cursor style (magenta)
@@ -56,7 +55,7 @@ def test_that_custom_theme_overrides_defaults():
         theme=Theme({"richer_prompt.cursor": "bold red"}),
     )
 
-    with simulate_keys([readchar.key.ENTER]):
+    with simulate_keys([keys.ENTER]):
         Select.ask("Pick:", ["a", "b"], console=console)
 
     output = buffer.getvalue()

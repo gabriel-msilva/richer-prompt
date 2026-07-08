@@ -1,11 +1,11 @@
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
-import readchar
 from rich import get_console
 from rich.console import Console, Group
 from rich.text import Text, TextType
 
+from richer_prompt import keys
 from richer_prompt.choices import Choice, ensure_choice
 from richer_prompt.rendering import (
     DOWN_ARROW,
@@ -81,13 +81,13 @@ class MultiSelectWidget(Generic[T]):
 
     def handle_key(self, key: str) -> bool:
         match key:
-            case readchar.key.DOWN:
+            case keys.DOWN:
                 self.move(1)
-            case readchar.key.UP:
+            case keys.UP:
                 self.move(-1)
-            case readchar.key.ENTER if self.is_on_submit():
+            case keys.ENTER if self.is_on_submit():
                 self.submit()
-            case readchar.key.ENTER | readchar.key.SPACE if not self.is_on_submit():
+            case keys.ENTER | keys.SPACE if not self.is_on_submit():
                 self.toggle()
             case _ if self.numbered and key.isdecimal():
                 n = int(key) - 1

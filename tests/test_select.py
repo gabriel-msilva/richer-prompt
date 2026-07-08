@@ -1,6 +1,6 @@
 import pytest
-import readchar
 
+from richer_prompt import keys
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.select import Select
 from richer_prompt.testing import simulate_keys
@@ -13,14 +13,14 @@ def select(console) -> Select:
 
 
 def test_that_choice_is_selected(select: Select):
-    keys = [
-        readchar.key.DOWN,
-        readchar.key.DOWN,
-        readchar.key.UP,
-        readchar.key.ENTER,
-    ]
-
-    with simulate_keys(keys):
+    with simulate_keys(
+        [
+            keys.DOWN,
+            keys.DOWN,
+            keys.UP,
+            keys.ENTER,
+        ]
+    ):
         assert select() == "b"
 
 
@@ -35,7 +35,7 @@ def test_that_choice_is_selected(select: Select):
     ],
 )
 def test_that_number_key_selects(select: Select, number: int, expected: str):
-    with simulate_keys([str(number), readchar.key.ENTER]):
+    with simulate_keys([str(number), keys.ENTER]):
         assert select() == expected
 
 
@@ -44,7 +44,7 @@ def test_that_numbering_is_disabled_for_more_than_9_choices(console):
         "Select a choice:", [f"Choice {i}" for i in range(1, 13)], console=console
     )
 
-    with simulate_keys(["5", readchar.key.ENTER]):
+    with simulate_keys(["5", keys.ENTER]):
         assert select() == "Choice 1"
 
 
@@ -56,7 +56,7 @@ def test_that_digit_keys_work_when_numbers_enabled(console):
         console=console,
     )
 
-    with simulate_keys(["5"]):
+    with simulate_keys(["5", keys.ENTER]):
         assert select() == "Choice 5"
 
 
@@ -65,20 +65,20 @@ def test_that_digit_keys_are_inert_when_numbering_disabled(console):
         "Select a choice:", ["a", "b", "c"], numbered=False, console=console
     )
 
-    with simulate_keys(["2", readchar.key.ENTER]):
+    with simulate_keys(["2", keys.ENTER]):
         assert select() == "a"
 
 
 @pytest.mark.parametrize(
     ("keys", "expected"),
     [
-        ([readchar.key.UP, readchar.key.ENTER], "c"),
+        ([keys.UP, keys.ENTER], "c"),
         (
             [
-                readchar.key.DOWN,
-                readchar.key.DOWN,
-                readchar.key.DOWN,
-                readchar.key.ENTER,
+                keys.DOWN,
+                keys.DOWN,
+                keys.DOWN,
+                keys.ENTER,
             ],
             "a",
         ),
@@ -91,7 +91,7 @@ def test_rollover(select: Select, keys, expected):
 
 
 def test_that_cursor_starts_at_index(select: Select):
-    with simulate_keys([readchar.key.ENTER]):
+    with simulate_keys([keys.ENTER]):
         assert select(index=1) == "b"
 
 
@@ -102,14 +102,14 @@ def test_that_index_out_of_range_raises(select: Select, index):
 
 
 def test_ask():
-    with simulate_keys([readchar.key.UP, readchar.key.ENTER]):
+    with simulate_keys([keys.UP, keys.ENTER]):
         assert Select.ask("Select a choice:", ["a", "b", "c"], index=1) == "a"
 
 
 def test_that_answer_is_rendered(select: Select):
     with (
         select.console.capture() as capture,
-        simulate_keys([readchar.key.DOWN, readchar.key.ENTER]),
+        simulate_keys([keys.DOWN, keys.ENTER]),
     ):
         select()
 

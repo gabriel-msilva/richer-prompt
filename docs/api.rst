@@ -21,3 +21,5 @@ API Reference
 .. autoexception:: richer_prompt.NotInteractiveError
 
 .. autofunction:: richer_prompt.testing.simulate_keys
+
+.. automodule:: richer_prompt.keys

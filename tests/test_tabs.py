@@ -1,6 +1,6 @@
 import pytest
-import readchar
 
+from richer_prompt import keys
 from richer_prompt.choices import Choice
 from richer_prompt.prompt.tabs import Tabs
 from richer_prompt.testing import simulate_keys
@@ -13,42 +13,39 @@ def tabs(console) -> Tabs:
 
 
 def test_that_choice_is_selected(tabs: Tabs):
-    keys = [
-        readchar.key.RIGHT,
-        readchar.key.TAB,
-        readchar.key.LEFT,
-        readchar.key.ENTER,
-    ]
-
-    with simulate_keys(keys):
+    with simulate_keys(
+        [
+            keys.RIGHT,
+            keys.TAB,
+            keys.LEFT,
+            keys.ENTER,
+        ]
+    ):
         assert tabs() == "b"
 
 
-@pytest.mark.skipif(
-    not hasattr(readchar.key, "SHIFT_TAB"), reason="SHIFT_TAB not supported in Windows"
-)
 def test_that_shift_tab_move_to_previous(tabs: Tabs):
-    keys = [
-        readchar.key.TAB,
-        readchar.key.TAB,
-        readchar.key.SHIFT_TAB,  # ty:ignore[unresolved-attribute]
-        readchar.key.ENTER,
-    ]
-
-    with simulate_keys(keys):
+    with simulate_keys(
+        [
+            keys.TAB,
+            keys.TAB,
+            keys.SHIFT_TAB,
+            keys.ENTER,
+        ]
+    ):
         assert tabs() == "b"
 
 
 @pytest.mark.parametrize(
     ("keys", "expected"),
     [
-        ([readchar.key.LEFT, readchar.key.ENTER], "a"),
+        ([keys.LEFT, keys.ENTER], "a"),
         (
             [
-                readchar.key.RIGHT,
-                readchar.key.RIGHT,
-                readchar.key.RIGHT,
-                readchar.key.ENTER,
+                keys.RIGHT,
+                keys.RIGHT,
+                keys.RIGHT,
+                keys.ENTER,
             ],
             "c",
         ),
@@ -61,7 +58,7 @@ def test_that_cursor_doesnt_rollover(tabs: Tabs, keys, expected):
 
 
 def test_that_cursor_starts_at_index(tabs: Tabs):
-    with simulate_keys([readchar.key.ENTER]):
+    with simulate_keys([keys.ENTER]):
         assert tabs(index=1) == "b"
 
 
@@ -72,14 +69,14 @@ def test_that_index_out_of_range_raises(tabs: Tabs, index):
 
 
 def test_ask():
-    with simulate_keys([readchar.key.RIGHT, readchar.key.ENTER]):
+    with simulate_keys([keys.RIGHT, keys.ENTER]):
         assert Tabs.ask("Select a choice:", ["a", "b", "c"], index=1) == "c"
 
 
 def test_that_answer_is_rendered(tabs: Tabs):
     with (
         tabs.console.capture() as capture,
-        simulate_keys([readchar.key.RIGHT, readchar.key.ENTER]),
+        simulate_keys([keys.RIGHT, keys.ENTER]),
     ):
         tabs()
 
