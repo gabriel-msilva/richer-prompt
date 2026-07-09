@@ -25,6 +25,16 @@ def test_that_choice_is_selected(select: Select):
         assert select() == "b"
 
 
+def test_that_vim_keys_navigate(select: Select):
+    with simulate_keys(["j", "j", "k", keys.ENTER]):
+        assert select() == "b"
+
+
+def test_that_horizontal_vim_keys_are_inert(select: Select):
+    with simulate_keys(["h", "l", keys.ENTER]):
+        assert select() == "a"
+
+
 @pytest.mark.parametrize(
     ("number", "expected"),
     [

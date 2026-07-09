@@ -24,6 +24,16 @@ def test_that_choice_is_selected(tabs: Tabs):
         assert tabs() == "b"
 
 
+def test_that_vim_keys_navigate(tabs: Tabs):
+    with simulate_keys(["l", "l", "h", keys.ENTER]):
+        assert tabs() == "b"
+
+
+def test_that_vertical_vim_keys_are_inert(tabs: Tabs):
+    with simulate_keys(["j", "k", keys.ENTER]):
+        assert tabs() == "a"
+
+
 def test_that_shift_tab_move_to_previous(tabs: Tabs):
     with simulate_keys(
         [
