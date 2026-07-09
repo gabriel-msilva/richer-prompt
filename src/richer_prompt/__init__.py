@@ -1,9 +1,7 @@
 from richer_prompt import keys
 from richer_prompt._version import get_version_dict
 from richer_prompt.choices import Choice
-from richer_prompt.prompt.multiselect import MultiSelect
-from richer_prompt.prompt.select import Select
-from richer_prompt.prompt.tabs import Tabs
+from richer_prompt.prompt import MultiSelect, Select, Tabs
 from richer_prompt.session import NotInteractiveError
 
 __all__ = [

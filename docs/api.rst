@@ -5,14 +5,17 @@ API Reference
 
 .. autoclass:: richer_prompt.Select
    :members:
+   :inherited-members:
    :special-members: __call__
 
 .. autoclass:: richer_prompt.MultiSelect
    :members:
+   :inherited-members:
    :special-members: __call__
 
 .. autoclass:: richer_prompt.Tabs
    :members:
+   :inherited-members:
    :special-members: __call__
 
 .. autoclass:: richer_prompt.Choice

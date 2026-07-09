@@ -196,8 +196,6 @@ def test_that_answer_is_rendered(multiselect: MultiSelect):
 
 
 def test_that_str_choices_are_rendered(multiselect: MultiSelect):
-    widget = multiselect._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -209,7 +207,7 @@ def test_that_str_choices_are_rendered(multiselect: MultiSelect):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(multiselect, expected)
 
 
 def test_that_labels_and_descriptions_are_rendered():
@@ -222,8 +220,6 @@ def test_that_labels_and_descriptions_are_rendered():
         ],
     )
 
-    widget = prompt._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -235,13 +231,11 @@ def test_that_labels_and_descriptions_are_rendered():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_choices_are_rendered_without_numbers():
     prompt = MultiSelect("Select multiple choices:", ["a", "b", "c"], numbered=False)
-    widget = prompt._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -253,12 +247,10 @@ def test_that_choices_are_rendered_without_numbers():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_cursor_pointer_moves(multiselect: MultiSelect):
-    widget = multiselect._build_widget(index=1)
-
     expected = """
     Select multiple choices:
 
@@ -270,12 +262,10 @@ def test_that_cursor_pointer_moves(multiselect: MultiSelect):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(multiselect, expected, index=1)
 
 
 def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
-    widget = multiselect._build_widget(default={0, 2})
-
     expected = """
     Select multiple choices:
 
@@ -287,15 +277,13 @@ def test_that_checkbox_indicators_are_rendered(multiselect: MultiSelect):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(multiselect, expected, default={0, 2})
 
 
 def test_custom_pointer():
     multiselect = MultiSelect(
         "Select multiple choices:", ["a", "b", "c"], cursor_pointer=">>"
     )
-    widget = multiselect._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -307,13 +295,11 @@ def test_custom_pointer():
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(multiselect, expected)
 
 
 def test_that_hint_is_hidden():
     prompt = MultiSelect("Select multiple choices:", ["a", "b", "c"], show_hint=False)
-    widget = prompt._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -323,7 +309,7 @@ def test_that_hint_is_hidden():
          Submit
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_10_or_more_choices_are_aligned(console):
@@ -333,8 +319,6 @@ def test_that_10_or_more_choices_are_aligned(console):
         numbered=True,
         console=console,
     )
-    widget = prompt._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -353,7 +337,7 @@ def test_that_10_or_more_choices_are_aligned(console):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_numbers_auto_hide_for_more_than_9_choices(console):
@@ -362,8 +346,6 @@ def test_that_numbers_auto_hide_for_more_than_9_choices(console):
         [f"Choice {i}" for i in range(1, 11)],
         console=console,
     )
-    widget = prompt._build_widget()
-
     expected = """
     Select multiple choices:
 
@@ -382,7 +364,7 @@ def test_that_numbers_auto_hide_for_more_than_9_choices(console):
     ↑↓ to navigate · Enter to select · Submit to finish
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 @pytest.mark.parametrize(
@@ -454,9 +436,7 @@ def test_that_viewport_is_scrolled(index, expected):
         viewport_size=4,
     )
 
-    widget = multiselect._build_widget(index=index)
-
-    assert_snapshot(widget, expected)
+    assert_snapshot(multiselect, expected, index=index)
 
 
 def test_style():
@@ -469,7 +449,6 @@ def test_style():
         ],
     )
 
-    widget = prompt._build_widget(default={0})
     expected = """
     [richer_prompt.title]Select multiple choices:[/]
 
@@ -481,9 +460,8 @@ def test_style():
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
     """
 
-    assert_snapshot(widget, expected, raw=True)
+    assert_snapshot(prompt, expected, default={0}, raw=True)
 
-    widget = prompt._build_widget(index=3)
     expected = """
     [richer_prompt.title]Select multiple choices:[/]
 
@@ -495,4 +473,4 @@ def test_style():
     [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
     """
 
-    assert_snapshot(widget, expected, raw=True)
+    assert_snapshot(prompt, expected, index=3, raw=True)

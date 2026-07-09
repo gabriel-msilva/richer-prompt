@@ -18,7 +18,6 @@ API changes
 - Added ``viewport_size`` parameter to :py:class:`Select` and :py:class:`MultiSelect`
   to cap the number of choices visible at once (at least 3).
   By default, prompts fit as many choices as the terminal height allows.
-  Longer prompts scroll the choices list within the viewport, keeping the cursor centered where possible.
 - Added :py:func:`richer_prompt.testing.simulate_keys` to simulate keyboard input when testing code that runs prompts.
 - Added the :py:mod:`richer_prompt.keys` module of key tokens (e.g. ``keys.DOWN``, ``keys.ENTER``)
   to pass to :py:func:`richer_prompt.testing.simulate_keys`.

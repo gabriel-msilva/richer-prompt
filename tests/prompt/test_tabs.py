@@ -84,8 +84,6 @@ def test_that_answer_is_rendered(tabs: Tabs):
 
 
 def test_that_str_choices_are_rendered(tabs: Tabs):
-    widget = tabs._build_widget()
-
     expected = """
     Select a choice:
 
@@ -93,7 +91,7 @@ def test_that_str_choices_are_rendered(tabs: Tabs):
 
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(tabs, expected)
 
 
 def test_that_labels_and_descriptions_are_rendered():
@@ -106,8 +104,6 @@ def test_that_labels_and_descriptions_are_rendered():
         ],
     )
 
-    widget = prompt._build_widget()
-
     expected = """
     Select a choice:
 
@@ -115,9 +111,7 @@ def test_that_labels_and_descriptions_are_rendered():
 
     """
 
-    assert_snapshot(widget, expected)
-
-    widget = prompt._build_widget(index=1)
+    assert_snapshot(prompt, expected)
 
     expected = """
     Select a choice:
@@ -126,7 +120,7 @@ def test_that_labels_and_descriptions_are_rendered():
     The second choice
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected, index=1)
 
 
 def test_style():
@@ -139,8 +133,6 @@ def test_style():
         ],
     )
 
-    widget = prompt._build_widget()
-
     expected = """
     [richer_prompt.title]Select a choice:[/]
 
@@ -148,4 +140,4 @@ def test_style():
     [richer_prompt.description]The first choice[/]
     """
 
-    assert_snapshot(widget, expected, raw=True)
+    assert_snapshot(prompt, expected, raw=True)
