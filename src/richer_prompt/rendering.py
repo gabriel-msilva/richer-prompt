@@ -1,5 +1,6 @@
 from typing import Final
 
+from rich.console import Console
 from rich.style import Style
 from rich.text import Text, TextType
 
@@ -32,18 +33,27 @@ def cursor_cell(pointer: str, active: bool) -> Text:
 
 
 def resolve_numbered(
-    numbered: bool | None, choices: list[Choice], viewport_size: int | None = None
+    numbered: bool | None, choices: list[Choice], viewport_size: int
 ) -> bool:
     if numbered is None:
-        fits = viewport_size is None or len(choices) <= viewport_size
-        return fits and len(choices) < 10
+        return len(choices) < 10 and len(choices) <= viewport_size
 
     return numbered
 
 
-def viewport_slice(total: int, size: int | None, cursor: int) -> range:
+def resolve_viewport_size(
+    viewport_size: int | None, console: Console, overhead: int
+) -> int:
+    """The explicit size, or however many choice rows fit the terminal height."""
+    if viewport_size is None:
+        return max(3, console.size.height - overhead)
+
+    return viewport_size
+
+
+def viewport_slice(total: int, size: int, cursor: int) -> range:
     """Visible index range, keeping the cursor centered where possible."""
-    if size is None or size >= total:
+    if size >= total:
         return range(total)
 
     offset = min(max(cursor - (size - 1) // 2, 0), total - size)

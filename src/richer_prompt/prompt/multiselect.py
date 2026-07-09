@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Generic, TypeVar
+from typing import Final, Generic, TypeVar
 
 from rich import get_console
 from rich.console import Console, Group
@@ -19,11 +19,15 @@ from richer_prompt.rendering import (
     number_cell,
     pointer_cell,
     resolve_numbered,
+    resolve_viewport_size,
     viewport_slice,
 )
 from richer_prompt.session import run
 
 T = TypeVar("T")
+
+# Rows rendered around the choices: message, blank lines, Submit, hint, and a margin line
+VIEWPORT_OVERHEAD: Final = 6
 
 
 class MultiSelectWidget(Generic[T]):
@@ -34,10 +38,10 @@ class MultiSelectWidget(Generic[T]):
         selected: set[int] | None = None,
         *,
         message: TextType,
-        cursor_pointer: str = RIGHT_POINTER,
-        numbered: bool | None = None,
-        show_hint: bool = True,
-        viewport_size: int | None = None,
+        cursor_pointer: str,
+        numbered: bool,
+        viewport_size: int,
+        show_hint: bool,
     ):
         selected = set(selected or [])
 
@@ -49,7 +53,7 @@ class MultiSelectWidget(Generic[T]):
         if offenders:
             raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
 
-        if viewport_size is not None and viewport_size < 3:
+        if viewport_size < 3:
             raise ValueError(f"Viewport size '{viewport_size}' must be at least 3")
 
         self.choices = choices
@@ -57,9 +61,9 @@ class MultiSelectWidget(Generic[T]):
         self.selected = selected
         self.message = ensure_text(message, default_style="richer_prompt.title")
         self.cursor_pointer = cursor_pointer
-        self.numbered = resolve_numbered(numbered, choices, viewport_size)
-        self.show_hint = show_hint
+        self.numbered = numbered
         self.viewport_size = viewport_size
+        self.show_hint = show_hint
 
         self._submitted = False
 
@@ -198,24 +202,17 @@ class MultiSelect(Generic[T]):
     cursor_pointer: str, default "❯"
         The string to use as the cursor pointer.
     numbered: bool or None, default None
-        Whether to display numbered choices.
-        If `None`, numbers are shown only when there are at most 9 choices and they
-        all fit in the viewport, so every displayed number works as a digit shortcut.
-        `True` always shows numbers (digit shortcuts still only reach choices 1-9);
-        `False` never shows them and disables digit shortcuts.
+        Whether to display numbered choices, also enabling digit shortcuts (1-9).
+        If `None`, show numbers only when there are at most 9 choices
+        and they all fit in the viewport.
 
         .. versionchanged:: 0.2.0
-            The default behavior changed from always showing numbers to only showing
-            them when there are at most 9 choices.
+            Numbers were previously shown by default.
     show_hint: bool, default True
         Whether to show a hint about how to select choices.
     viewport_size: int or None, default None
-        The maximum number of choices visible at once, at least 3
-        (the cursor row plus one row of context on each side).
-        Longer lists scroll to keep the cursor centered,
-        and dimmed ↑/↓ arrows on the edge rows mark hidden choices.
-        The Submit row stays pinned below the viewport.
-        If `None`, all choices are shown.
+        The maximum number of choices visible at once, at least 3.
+        If `None`, fit as many choices as the terminal height allows.
 
         .. versionadded:: 0.2.0
     console: rich.console.Console, optional
@@ -282,24 +279,17 @@ class MultiSelect(Generic[T]):
         cursor_pointer: str, default "❯"
             The string to use as the cursor pointer.
         numbered: bool or None, default None
-            Whether to display numbered choices.
-            If `None`, numbers are shown only when there are at most 9 choices and they
-            all fit in the viewport, so every displayed number works as a digit shortcut.
-            `True` always shows numbers (digit shortcuts still only reach choices 1-9);
-            `False` never shows them and disables digit shortcuts.
+            Whether to display numbered choices, also enabling digit shortcuts (1-9).
+            If `None`, show numbers only when there are at most 9 choices
+            and they all fit in the viewport.
 
             .. versionchanged:: 0.2.0
-                The default behavior changed from always showing numbers to only showing
-                them when there are at most 9 choices.
+                Numbers were previously shown by default.
         show_hint: bool, default True
             Whether to show a hint about how to select choices.
         viewport_size: int or None, default None
-            The maximum number of choices visible at once, at least 3
-            (the cursor row plus one row of context on each side).
-            Longer lists scroll to keep the cursor centered,
-            and dimmed ↑/↓ arrows on the edge rows mark hidden choices.
-            The Submit row stays pinned below the viewport.
-            If `None`, all choices are shown.
+            The maximum number of choices visible at once, at least 3.
+            If `None`, fit as many choices as the terminal height allows.
 
             .. versionadded:: 0.2.0
         console: rich.console.Console, optional
@@ -349,14 +339,18 @@ class MultiSelect(Generic[T]):
         self, index: int = 0, default: set[int] | None = None
     ) -> MultiSelectWidget[T]:
         """Build a fresh widget for one prompt run."""
+        viewport_size = resolve_viewport_size(
+            self.viewport_size, self.console, VIEWPORT_OVERHEAD
+        )
+
         return MultiSelectWidget(
             self.choices,
             cursor=index,
             selected=default,
             message=self.message,
             cursor_pointer=self.cursor_pointer,
-            numbered=self.numbered,
-            viewport_size=self.viewport_size,
+            numbered=resolve_numbered(self.numbered, self.choices, viewport_size),
+            viewport_size=viewport_size,
             show_hint=self.show_hint,
         )
 
