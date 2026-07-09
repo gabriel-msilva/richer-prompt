@@ -15,10 +15,11 @@ Build changes
 API changes
 ~~~~~~~~~~~
 
+- Added ``viewport_size`` parameter to :py:class:`Select` and :py:class:`MultiSelect` to limit the number of choices visible at once.
 - Added :py:func:`richer_prompt.testing.simulate_keys` to simulate keyboard input when testing code that runs prompts.
 - Added the :py:mod:`richer_prompt.keys` module of key tokens (e.g. ``keys.DOWN``, ``keys.ENTER``)
   to pass to :py:func:`richer_prompt.testing.simulate_keys`.
-- The ``numbered`` option of :py:class:`Select` and :py:class:`MultiSelect` now defaults to ``None``,
+- The ``numbered`` parameter of :py:class:`Select` and :py:class:`MultiSelect` now defaults to ``None``,
   which displays choice numbers only when the prompt has at most 9 choices, so every displayed number works as a digit shortcut.
   Pass ``True`` or ``False`` to force numbers (and their digit shortcuts) on or off.
 

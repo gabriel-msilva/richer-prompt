@@ -272,6 +272,61 @@ def test_that_numbers_auto_hide_for_more_than_9_choices():
     assert_snapshot(widget, expected)
 
 
+@pytest.mark.parametrize(
+    ("index", "expected"),
+    [
+        (
+            0,
+            """
+            Select a choice:
+
+            ❯ Choice 1
+              Choice 2
+              Choice 3
+            ↓ Choice 4
+
+            ↑↓ to navigate · Enter to select
+            """,
+        ),
+        (
+            2,
+            """
+            Select a choice:
+
+            ↑ Choice 2
+            ❯ Choice 3
+              Choice 4
+            ↓ Choice 5
+
+            ↑↓ to navigate · Enter to select
+            """,
+        ),
+        (
+            5,
+            """
+            Select a choice:
+
+            ↑ Choice 3
+              Choice 4
+              Choice 5
+            ❯ Choice 6
+
+            ↑↓ to navigate · Enter to select
+            """,
+        ),
+    ],
+    ids=["top", "middle", "bottom"],
+)
+def test_that_viewport_is_scrolled(index, expected):
+    select = Select(
+        "Select a choice:", [f"Choice {i + 1}" for i in range(6)], viewport_size=4
+    )
+
+    widget = select._build_widget(index=index)
+
+    assert_snapshot(widget, expected)
+
+
 def test_style():
     prompt = Select(
         "Select a choice:",

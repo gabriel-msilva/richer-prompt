@@ -17,7 +17,9 @@ from richer_prompt.rendering import (
     ensure_text,
     format_hint,
     number_cell,
+    pointer_cell,
     resolve_numbered,
+    viewport_slice,
 )
 from richer_prompt.session import run
 
@@ -35,6 +37,7 @@ class MultiSelectWidget(Generic[T]):
         cursor_pointer: str = RIGHT_POINTER,
         numbered: bool | None = None,
         show_hint: bool = True,
+        viewport_size: int | None = None,
     ):
         selected = set(selected or [])
 
@@ -46,13 +49,18 @@ class MultiSelectWidget(Generic[T]):
         if offenders:
             raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
 
+        if viewport_size is not None and viewport_size < 3:
+            raise ValueError(f"Viewport size '{viewport_size}' must be at least 3")
+
         self.choices = choices
         self.cursor = cursor
         self.selected = selected
         self.message = ensure_text(message, default_style="richer_prompt.title")
         self.cursor_pointer = cursor_pointer
-        self.numbered = resolve_numbered(numbered, choices)
+        self.numbered = resolve_numbered(numbered, choices, viewport_size)
         self.show_hint = show_hint
+        self.viewport_size = viewport_size
+
         self._submitted = False
 
     @property
@@ -107,18 +115,22 @@ class MultiSelectWidget(Generic[T]):
             rows.append(Text())
 
         number_width = len(str(len(self.choices)))
+        viewport = viewport_slice(len(self.choices), self.viewport_size, self.cursor)
 
-        for i, choice in enumerate(self.choices):
+        for i in viewport:
             is_focused = i == self.cursor
+            pointer = pointer_cell(
+                self.cursor_pointer, is_focused, i, viewport, len(self.choices)
+            )
 
             rows.append(
                 Text.assemble(
-                    cursor_cell(self.cursor_pointer, is_focused),
+                    pointer,
                     " ",
                     number_cell(i, number_width) if self.numbered else Text(),
                     checkbox_cell(i in self.selected),
                     " ",
-                    choice_label(choice, is_focused),
+                    choice_label(self.choices[i], is_focused),
                 )
             )
 
@@ -186,9 +198,9 @@ class MultiSelect(Generic[T]):
     cursor_pointer: str, default "❯"
         The string to use as the cursor pointer.
     numbered: bool or None, default None
-        Whether to display numbers next to the choices.
-        If `None`, numbers are shown only when there are at most 9 choices,
-        so every displayed number works as a digit shortcut.
+        Whether to display numbered choices.
+        If `None`, numbers are shown only when there are at most 9 choices and they
+        all fit in the viewport, so every displayed number works as a digit shortcut.
         `True` always shows numbers (digit shortcuts still only reach choices 1-9);
         `False` never shows them and disables digit shortcuts.
 
@@ -197,6 +209,15 @@ class MultiSelect(Generic[T]):
             them when there are at most 9 choices.
     show_hint: bool, default True
         Whether to show a hint about how to select choices.
+    viewport_size: int or None, default None
+        The maximum number of choices visible at once, at least 3
+        (the cursor row plus one row of context on each side).
+        Longer lists scroll to keep the cursor centered,
+        and dimmed ↑/↓ arrows on the edge rows mark hidden choices.
+        The Submit row stays pinned below the viewport.
+        If `None`, all choices are shown.
+
+        .. versionadded:: 0.2.0
     console: rich.console.Console, optional
         A ``Console`` instance.
         If None, use the global console.
@@ -214,6 +235,7 @@ class MultiSelect(Generic[T]):
         *,
         cursor_pointer: str = RIGHT_POINTER,
         numbered: bool | None = None,
+        viewport_size: int | None = None,
         show_hint: bool = True,
         console: Console | None = None,
     ):
@@ -224,6 +246,7 @@ class MultiSelect(Generic[T]):
         self.message = message
         self.cursor_pointer = cursor_pointer
         self.numbered = numbered
+        self.viewport_size = viewport_size
         self.show_hint = show_hint
         self.console = console or get_console()
 
@@ -237,6 +260,7 @@ class MultiSelect(Generic[T]):
         default: set[int] | None = None,
         cursor_pointer: str = RIGHT_POINTER,
         numbered: bool | None = None,
+        viewport_size: int | None = None,
         show_hint: bool = True,
         console: Console | None = None,
     ) -> list[T]:
@@ -258,9 +282,9 @@ class MultiSelect(Generic[T]):
         cursor_pointer: str, default "❯"
             The string to use as the cursor pointer.
         numbered: bool or None, default None
-            Whether to display numbers next to the choices.
-            If `None`, numbers are shown only when there are at most 9 choices,
-            so every displayed number works as a digit shortcut.
+            Whether to display numbered choices.
+            If `None`, numbers are shown only when there are at most 9 choices and they
+            all fit in the viewport, so every displayed number works as a digit shortcut.
             `True` always shows numbers (digit shortcuts still only reach choices 1-9);
             `False` never shows them and disables digit shortcuts.
 
@@ -269,6 +293,15 @@ class MultiSelect(Generic[T]):
                 them when there are at most 9 choices.
         show_hint: bool, default True
             Whether to show a hint about how to select choices.
+        viewport_size: int or None, default None
+            The maximum number of choices visible at once, at least 3
+            (the cursor row plus one row of context on each side).
+            Longer lists scroll to keep the cursor centered,
+            and dimmed ↑/↓ arrows on the edge rows mark hidden choices.
+            The Submit row stays pinned below the viewport.
+            If `None`, all choices are shown.
+
+            .. versionadded:: 0.2.0
         console: rich.console.Console, optional
             A ``Console`` instance.
             If None, use the global console.
@@ -286,6 +319,7 @@ class MultiSelect(Generic[T]):
             choices,
             cursor_pointer=cursor_pointer,
             numbered=numbered,
+            viewport_size=viewport_size,
             show_hint=show_hint,
             console=console,
         )(index=index, default=default)
@@ -322,6 +356,7 @@ class MultiSelect(Generic[T]):
             message=self.message,
             cursor_pointer=self.cursor_pointer,
             numbered=self.numbered,
+            viewport_size=self.viewport_size,
             show_hint=self.show_hint,
         )
 

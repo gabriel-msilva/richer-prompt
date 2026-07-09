@@ -31,11 +31,24 @@ def cursor_cell(pointer: str, active: bool) -> Text:
     return Text(" " * len(pointer))
 
 
-def resolve_numbered(numbered: bool | None, choices: list[Choice]) -> bool:
+def resolve_numbered(
+    numbered: bool | None, choices: list[Choice], viewport_size: int | None = None
+) -> bool:
     if numbered is None:
-        return len(choices) < 10
+        fits = viewport_size is None or len(choices) <= viewport_size
+        return fits and len(choices) < 10
 
     return numbered
+
+
+def viewport_slice(total: int, size: int | None, cursor: int) -> range:
+    """Visible index range, keeping the cursor centered where possible."""
+    if size is None or size >= total:
+        return range(total)
+
+    offset = min(max(cursor - (size - 1) // 2, 0), total - size)
+
+    return range(offset, offset + size)
 
 
 def number_cell(index: int, width: int) -> Text:
@@ -57,7 +70,27 @@ def tab_cell(choice: Choice, focused: bool) -> Text:
 
 
 def arrow_cell(arrow: str, dimmed: bool) -> Text:
-    return Text(arrow, style="dim" if dimmed else "")
+    return Text(arrow, style="richer_prompt.hint" if dimmed else "")
+
+
+def overflow_cell(arrow: str, pointer: str) -> Text:
+    return Text(arrow.ljust(len(pointer)), style="richer_prompt.hint")
+
+
+def pointer_cell(
+    pointer: str, focused: bool, index: int, viewport: range, total: int
+) -> Text:
+    """Cursor column cell: the pointer, an overflow arrow, or a blank."""
+    if focused:
+        return cursor_cell(pointer, active=True)
+
+    if index == viewport.start and viewport.start > 0:
+        return overflow_cell(UP_ARROW, pointer)
+
+    if index == viewport.stop - 1 and viewport.stop < total:
+        return overflow_cell(DOWN_ARROW, pointer)
+
+    return cursor_cell(pointer, active=False)
 
 
 def choice_label(choice: Choice, focused: bool) -> Text:

@@ -57,10 +57,11 @@ def run(widget: Widget[T], console: Console) -> T:
 
     with _key_source() as read_key, console.use_theme(theme):
         with Live(
-            widget.render(),
+            renderable=widget.render(),
             console=console,
             auto_refresh=False,
             transient=True,
+            vertical_overflow="visible",
         ) as live:
             while not widget.submitted:
                 key = read_key()

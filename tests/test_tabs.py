@@ -144,7 +144,7 @@ def test_style():
     expected = """
     [richer_prompt.title]Select a choice:[/]
 
-    [dim]←[/] [richer_prompt.tab.active] a [/]  b   c  →
+    [richer_prompt.hint]←[/] [richer_prompt.tab.active] a [/]  b   c  →
     [richer_prompt.description]The first choice[/]
     """
 
