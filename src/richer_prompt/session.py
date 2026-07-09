@@ -33,12 +33,7 @@ class NotInteractiveError(RuntimeError):
 
 
 class Widget(Protocol[T_co]):
-    """
-    A self-contained per-run component driven by :py:func:`run`.
-
-    ``handle_key`` returns whether the key was consumed, so that a composite
-    widget (e.g. a form) can arbitrate keys between itself and its children.
-    """
+    """A self-contained per-run component driven by :py:func:`run`."""
 
     @property
     def submitted(self) -> bool: ...

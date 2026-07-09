@@ -1,12 +1,12 @@
 from collections.abc import Iterable
 from typing import Final, Generic, TypeVar
 
-from rich import get_console
 from rich.console import Console, Group
 from rich.text import Text, TextType
 
 from richer_prompt import keys
-from richer_prompt.choices import Choice, ensure_choice
+from richer_prompt.choices import Choice
+from richer_prompt.prompt.base import ChoicePrompt
 from richer_prompt.rendering import (
     DOWN_ARROW,
     RIGHT_POINTER,
@@ -22,7 +22,6 @@ from richer_prompt.rendering import (
     resolve_viewport_size,
     viewport_slice,
 )
-from richer_prompt.session import run
 
 T = TypeVar("T")
 
@@ -182,7 +181,7 @@ class MultiSelectWidget(Generic[T]):
         return [choice.value for choice in self.selected_choices]
 
 
-class MultiSelect(Generic[T]):
+class MultiSelect(ChoicePrompt[T, list[T]]):
     """
     Select multiple choices from a vertical list.
 
@@ -236,16 +235,12 @@ class MultiSelect(Generic[T]):
         show_hint: bool = True,
         console: Console | None = None,
     ):
-        self.choices: list[Choice[T]] = [ensure_choice(choice) for choice in choices]
-        if not self.choices:
-            raise ValueError("choices cannot be empty")
+        super().__init__(message, choices, console=console)
 
-        self.message = message
         self.cursor_pointer = cursor_pointer
         self.numbered = numbered
         self.viewport_size = viewport_size
         self.show_hint = show_hint
-        self.console = console or get_console()
 
     @classmethod
     def ask(
@@ -329,11 +324,7 @@ class MultiSelect(Generic[T]):
         -------
         List of values of the selected choices.
         """
-        widget = self._build_widget(index, default)
-
-        self.pre_prompt()
-
-        return run(widget, self.console)
+        return super().__call__(index, default)
 
     def _build_widget(
         self, index: int = 0, default: set[int] | None = None
@@ -353,6 +344,3 @@ class MultiSelect(Generic[T]):
             viewport_size=viewport_size,
             show_hint=self.show_hint,
         )
-
-    def pre_prompt(self) -> None:
-        """Hook to display something before the prompt."""

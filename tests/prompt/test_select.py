@@ -128,8 +128,6 @@ def test_that_answer_is_rendered(select: Select):
 
 
 def test_that_str_choices_are_rendered(select: Select):
-    widget = select._build_widget()
-
     expected = """
     Select a choice:
 
@@ -140,7 +138,7 @@ def test_that_str_choices_are_rendered(select: Select):
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(select, expected)
 
 
 def test_that_labels_and_descriptions_are_rendered():
@@ -153,8 +151,6 @@ def test_that_labels_and_descriptions_are_rendered():
         ],
     )
 
-    widget = prompt._build_widget()
-
     expected = """
     Select a choice:
 
@@ -165,13 +161,11 @@ def test_that_labels_and_descriptions_are_rendered():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_choices_are_rendered_without_numbers():
     select = Select("Select a choice:", ["a", "b", "c"], numbered=False)
-    widget = select._build_widget()
-
     expected = """
     Select a choice:
 
@@ -182,12 +176,10 @@ def test_that_choices_are_rendered_without_numbers():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(select, expected)
 
 
 def test_that_cursor_pointer_moves(select: Select):
-    widget = select._build_widget(index=1)
-
     expected = """
     Select a choice:
 
@@ -198,13 +190,11 @@ def test_that_cursor_pointer_moves(select: Select):
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(select, expected, index=1)
 
 
 def test_custom_pointer():
     prompt = Select("Select a choice:", ["a", "b", "c"], cursor_pointer=">>")
-    widget = prompt._build_widget()
-
     expected = """
     Select a choice:
 
@@ -215,13 +205,11 @@ def test_custom_pointer():
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_hint_is_hidden():
     prompt = Select("Select a choice:", ["a", "b", "c"], show_hint=False)
-    widget = prompt._build_widget()
-
     expected = """
     Select a choice:
 
@@ -230,7 +218,7 @@ def test_that_hint_is_hidden():
       3. c
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_10_or_more_choices_are_aligned(console):
@@ -240,8 +228,6 @@ def test_that_10_or_more_choices_are_aligned(console):
         numbered=True,
         console=console,
     )
-    widget = prompt._build_widget()
-
     expected = """
     Select a choice:
 
@@ -259,15 +245,13 @@ def test_that_10_or_more_choices_are_aligned(console):
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 def test_that_numbers_auto_hide_for_more_than_9_choices(console):
     prompt = Select(
         "Select a choice:", [f"Choice {i}" for i in range(1, 11)], console=console
     )
-    widget = prompt._build_widget()
-
     expected = """
     Select a choice:
 
@@ -285,7 +269,7 @@ def test_that_numbers_auto_hide_for_more_than_9_choices(console):
     ↑↓ to navigate · Enter to select
     """
 
-    assert_snapshot(widget, expected)
+    assert_snapshot(prompt, expected)
 
 
 @pytest.mark.parametrize(
@@ -338,9 +322,7 @@ def test_that_viewport_is_scrolled(index, expected):
         "Select a choice:", [f"Choice {i + 1}" for i in range(6)], viewport_size=4
     )
 
-    widget = select._build_widget(index=index)
-
-    assert_snapshot(widget, expected)
+    assert_snapshot(select, expected, index=index)
 
 
 def test_style():
@@ -353,8 +335,6 @@ def test_style():
         ],
     )
 
-    widget = prompt._build_widget()
-
     expected = """
     [richer_prompt.title]Select a choice:[/]
 
@@ -365,4 +345,4 @@ def test_style():
     [richer_prompt.hint]↑↓ to navigate · Enter to select[/]
     """
 
-    assert_snapshot(widget, expected, raw=True)
+    assert_snapshot(prompt, expected, raw=True)

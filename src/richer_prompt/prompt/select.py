@@ -1,12 +1,12 @@
 from collections.abc import Iterable
 from typing import Final, Generic, TypeVar
 
-from rich import get_console
 from rich.console import Console, Group
 from rich.text import Text, TextType
 
 from richer_prompt import keys
-from richer_prompt.choices import Choice, ensure_choice
+from richer_prompt.choices import Choice
+from richer_prompt.prompt.base import ChoicePrompt
 from richer_prompt.rendering import (
     DOWN_ARROW,
     RIGHT_POINTER,
@@ -20,7 +20,6 @@ from richer_prompt.rendering import (
     resolve_viewport_size,
     viewport_slice,
 )
-from richer_prompt.session import run
 
 T = TypeVar("T")
 
@@ -133,7 +132,7 @@ class SelectWidget(Generic[T]):
         return self.current.value
 
 
-class Select(Generic[T]):
+class Select(ChoicePrompt[T, T]):
     """
     Select a single choice from a vertical list.
 
@@ -187,16 +186,12 @@ class Select(Generic[T]):
         show_hint: bool = True,
         console: Console | None = None,
     ):
-        self.choices: list[Choice[T]] = [ensure_choice(choice) for choice in choices]
-        if not self.choices:
-            raise ValueError("choices cannot be empty")
+        super().__init__(message, choices, console=console)
 
-        self.message = message
         self.cursor_pointer = cursor_pointer
         self.numbered = numbered
         self.viewport_size = viewport_size
         self.show_hint = show_hint
-        self.console = console or get_console()
 
     @classmethod
     def ask(
@@ -275,11 +270,7 @@ class Select(Generic[T]):
         -------
         The value of the selected choice.
         """
-        widget = self._build_widget(index)
-
-        self.pre_prompt()
-
-        return run(widget, self.console)
+        return super().__call__(index)
 
     def _build_widget(self, index: int = 0) -> SelectWidget[T]:
         """Build a fresh widget for one prompt run."""
@@ -296,6 +287,3 @@ class Select(Generic[T]):
             viewport_size=viewport_size,
             show_hint=self.show_hint,
         )
-
-    def pre_prompt(self) -> None:
-        """Hook to display something before the prompt."""

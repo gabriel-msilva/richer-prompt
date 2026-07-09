@@ -1,12 +1,12 @@
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
-from rich import get_console
 from rich.console import Console, Group
 from rich.text import Text, TextType
 
 from richer_prompt import keys
-from richer_prompt.choices import Choice, ensure_choice
+from richer_prompt.choices import Choice
+from richer_prompt.prompt.base import ChoicePrompt
 from richer_prompt.rendering import (
     LEFT_ARROW,
     RIGHT_ARROW,
@@ -14,7 +14,6 @@ from richer_prompt.rendering import (
     ensure_text,
     tab_cell,
 )
-from richer_prompt.session import run
 
 T = TypeVar("T")
 
@@ -91,7 +90,7 @@ class TabsWidget(Generic[T]):
         return self.current.value
 
 
-class Tabs(Generic[T]):
+class Tabs(ChoicePrompt[T, T]):
     """
     Select a single choice from a horizontal list.
 
@@ -117,20 +116,6 @@ class Tabs(Generic[T]):
     >>> prompt = Tabs("Choose a color:", ["Red", "Green", "Blue"])
     >>> color = prompt()
     """
-
-    def __init__(
-        self,
-        message: TextType,
-        choices: Iterable[Choice[T] | T],
-        *,
-        console: Console | None = None,
-    ):
-        self.choices: list[Choice[T]] = [ensure_choice(choice) for choice in choices]
-        if not self.choices:
-            raise ValueError("choices cannot be empty")
-
-        self.message = message
-        self.console = console or get_console()
 
     @classmethod
     def ask(
@@ -181,11 +166,7 @@ class Tabs(Generic[T]):
         -------
         The value of the selected choice.
         """
-        widget = self._build_widget(index)
-
-        self.pre_prompt()
-
-        return run(widget, self.console)
+        return super().__call__(index)
 
     def _build_widget(self, index: int = 0) -> TabsWidget[T]:
         """Build a fresh widget for one prompt run."""
@@ -194,6 +175,3 @@ class Tabs(Generic[T]):
             cursor=index,
             message=self.message,
         )
-
-    def pre_prompt(self) -> None:
-        """Hook to display something before the prompt."""
