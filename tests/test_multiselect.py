@@ -1,4 +1,5 @@
 import pytest
+from rich.console import Console
 
 from richer_prompt import keys
 from richer_prompt.choices import Choice
@@ -142,6 +143,16 @@ def test_that_default_indices_out_of_range_raises(multiselect):
         ValueError, match="Default indices \\[-1, 3\\] are out of range"
     ):
         multiselect(default={-1, 0, 1, 3})
+
+
+@pytest.mark.parametrize(("height", "expected"), [(12, 6), (5, 3)])
+def test_that_viewport_size_defaults_to_terminal_height(height, expected):
+    console = Console(width=60, height=height, color_system=None, force_terminal=False)
+    multiselect = MultiSelect(
+        "Select multiple choices:", [f"Choice {i}" for i in range(20)], console=console
+    )
+
+    assert multiselect._build_widget().viewport_size == expected
 
 
 def test_ask():
@@ -315,9 +326,12 @@ def test_that_hint_is_hidden():
     assert_snapshot(widget, expected)
 
 
-def test_that_10_or_more_choices_are_aligned():
+def test_that_10_or_more_choices_are_aligned(console):
     prompt = MultiSelect(
-        "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)], numbered=True
+        "Select multiple choices:",
+        [f"Choice {i}" for i in range(1, 11)],
+        numbered=True,
+        console=console,
     )
     widget = prompt._build_widget()
 
@@ -342,9 +356,11 @@ def test_that_10_or_more_choices_are_aligned():
     assert_snapshot(widget, expected)
 
 
-def test_that_numbers_auto_hide_for_more_than_9_choices():
+def test_that_numbers_auto_hide_for_more_than_9_choices(console):
     prompt = MultiSelect(
-        "Select multiple choices:", [f"Choice {i}" for i in range(1, 11)]
+        "Select multiple choices:",
+        [f"Choice {i}" for i in range(1, 11)],
+        console=console,
     )
     widget = prompt._build_widget()
 

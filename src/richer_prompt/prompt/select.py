@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Generic, TypeVar
+from typing import Final, Generic, TypeVar
 
 from rich import get_console
 from rich.console import Console, Group
@@ -17,11 +17,15 @@ from richer_prompt.rendering import (
     number_cell,
     pointer_cell,
     resolve_numbered,
+    resolve_viewport_size,
     viewport_slice,
 )
 from richer_prompt.session import run
 
 T = TypeVar("T")
+
+# Rows rendered around the choices: message, blank lines, hint, and a margin line
+VIEWPORT_OVERHEAD: Final = 5
 
 
 class SelectWidget(Generic[T]):
@@ -31,22 +35,22 @@ class SelectWidget(Generic[T]):
         cursor: int = 0,
         *,
         message: TextType,
-        cursor_pointer: str = RIGHT_POINTER,
-        numbered: bool | None = None,
-        viewport_size: int | None = None,
-        show_hint: bool = True,
+        cursor_pointer: str,
+        numbered: bool,
+        viewport_size: int,
+        show_hint: bool,
     ):
         if cursor < 0 or cursor >= len(choices):
             raise ValueError(f"Index '{cursor}' is out of range")
 
-        if viewport_size is not None and viewport_size < 3:
+        if viewport_size < 3:
             raise ValueError(f"Viewport size '{viewport_size}' must be at least 3")
 
         self.choices = choices
         self.cursor = cursor
         self.message = ensure_text(message, default_style="richer_prompt.title")
         self.cursor_pointer = cursor_pointer
-        self.numbered = resolve_numbered(numbered, choices, viewport_size)
+        self.numbered = numbered
         self.viewport_size = viewport_size
         self.show_hint = show_hint
 
@@ -149,21 +153,15 @@ class Select(Generic[T]):
     cursor_pointer: str, default "❯"
         The string to use as the cursor pointer.
     numbered: bool or None, default None
-        Whether to display numbered choices.
-        If `None`, numbers are shown only when there are at most 9 choices and they
-        all fit in the viewport, so every displayed number works as a digit shortcut.
-        `True` always shows numbers (digit shortcuts still only reach choices 1-9);
-        `False` never shows them and disables digit shortcuts.
+        Whether to display numbered choices, also enabling digit shortcuts (1-9).
+        If `None`, show numbers only when there are at most 9 choices
+        and they all fit in the viewport.
 
         .. versionchanged:: 0.2.0
-            The default behavior changed from always showing numbers to only showing
-            them when there are at most 9 choices.
+            Numbers were previously shown by default.
     viewport_size: int or None, default None
-        The maximum number of choices visible at once, at least 3
-        (the cursor row plus one row of context on each side).
-        Longer lists scroll to keep the cursor centered,
-        and dimmed ↑/↓ arrows on the edge rows mark hidden choices.
-        If `None`, all choices are shown.
+        The maximum number of choices visible at once, at least 3.
+        If `None`, fit as many choices as the terminal height allows.
 
         .. versionadded:: 0.2.0
     show_hint: bool, default True
@@ -229,21 +227,15 @@ class Select(Generic[T]):
         cursor_pointer: str, default "❯"
             The string to use as the cursor pointer.
         numbered: bool or None, default None
-            Whether to display numbered choices.
-            If `None`, numbers are shown only when there are at most 9 choices and they
-            all fit in the viewport, so every displayed number works as a digit shortcut.
-            `True` always shows numbers (digit shortcuts still only reach choices 1-9);
-            `False` never shows them and disables digit shortcuts.
+            Whether to display numbered choices, also enabling digit shortcuts (1-9).
+            If `None`, show numbers only when there are at most 9 choices
+            and they all fit in the viewport.
 
             .. versionchanged:: 0.2.0
-                The default behavior changed from always showing numbers to only showing
-                them when there are at most 9 choices.
+                Numbers were previously shown by default.
         viewport_size: int or None, default None
-            The maximum number of choices visible at once, at least 3
-            (the cursor row plus one row of context on each side).
-            Longer lists scroll to keep the cursor centered,
-            and dimmed ↑/↓ arrows on the edge rows mark hidden choices.
-            If `None`, all choices are shown.
+            The maximum number of choices visible at once, at least 3.
+            If `None`, fit as many choices as the terminal height allows.
 
             .. versionadded:: 0.2.0
         show_hint: bool, default True
@@ -291,13 +283,17 @@ class Select(Generic[T]):
 
     def _build_widget(self, index: int = 0) -> SelectWidget[T]:
         """Build a fresh widget for one prompt run."""
+        viewport_size = resolve_viewport_size(
+            self.viewport_size, self.console, VIEWPORT_OVERHEAD
+        )
+
         return SelectWidget(
             self.choices,
             cursor=index,
             message=self.message,
             cursor_pointer=self.cursor_pointer,
-            numbered=self.numbered,
-            viewport_size=self.viewport_size,
+            numbered=resolve_numbered(self.numbered, self.choices, viewport_size),
+            viewport_size=viewport_size,
             show_hint=self.show_hint,
         )
 

@@ -15,13 +15,16 @@ Build changes
 API changes
 ~~~~~~~~~~~
 
-- Added ``viewport_size`` parameter to :py:class:`Select` and :py:class:`MultiSelect` to limit the number of choices visible at once.
+- Added ``viewport_size`` parameter to :py:class:`Select` and :py:class:`MultiSelect`
+  to cap the number of choices visible at once (at least 3).
+  By default, prompts fit as many choices as the terminal height allows.
+  Longer prompts scroll the choices list within the viewport, keeping the cursor centered where possible.
 - Added :py:func:`richer_prompt.testing.simulate_keys` to simulate keyboard input when testing code that runs prompts.
 - Added the :py:mod:`richer_prompt.keys` module of key tokens (e.g. ``keys.DOWN``, ``keys.ENTER``)
   to pass to :py:func:`richer_prompt.testing.simulate_keys`.
 - The ``numbered`` parameter of :py:class:`Select` and :py:class:`MultiSelect` now defaults to ``None``,
-  which displays choice numbers only when the prompt has at most 9 choices, so every displayed number works as a digit shortcut.
-  Pass ``True`` or ``False`` to force numbers (and their digit shortcuts) on or off.
+  which shows numbers only when the prompt has at most 9 choices and they all fit in the viewport.
+  Pass ``True`` or ``False`` to force numbers (and digit shortcuts) on or off.
 
 Fixes
 ~~~~~

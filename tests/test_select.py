@@ -1,4 +1,5 @@
 import pytest
+from rich.console import Console
 
 from richer_prompt import keys
 from richer_prompt.choices import Choice
@@ -99,6 +100,16 @@ def test_that_cursor_starts_at_index(select: Select):
 def test_that_index_out_of_range_raises(select: Select, index):
     with pytest.raises(ValueError, match=f"Index '{index}' is out of range"):
         select(index=index)
+
+
+@pytest.mark.parametrize(("height", "expected"), [(12, 7), (5, 3)])
+def test_that_viewport_size_defaults_to_terminal_height(height, expected):
+    console = Console(width=60, height=height, color_system=None, force_terminal=False)
+    select = Select(
+        "Select a choice:", [f"Choice {i}" for i in range(20)], console=console
+    )
+
+    assert select._build_widget().viewport_size == expected
 
 
 def test_ask():
@@ -222,9 +233,12 @@ def test_that_hint_is_hidden():
     assert_snapshot(widget, expected)
 
 
-def test_that_10_or_more_choices_are_aligned():
+def test_that_10_or_more_choices_are_aligned(console):
     prompt = Select(
-        "Select a choice:", [f"Choice {i}" for i in range(1, 11)], numbered=True
+        "Select a choice:",
+        [f"Choice {i}" for i in range(1, 11)],
+        numbered=True,
+        console=console,
     )
     widget = prompt._build_widget()
 
@@ -248,8 +262,10 @@ def test_that_10_or_more_choices_are_aligned():
     assert_snapshot(widget, expected)
 
 
-def test_that_numbers_auto_hide_for_more_than_9_choices():
-    prompt = Select("Select a choice:", [f"Choice {i}" for i in range(1, 11)])
+def test_that_numbers_auto_hide_for_more_than_9_choices(console):
+    prompt = Select(
+        "Select a choice:", [f"Choice {i}" for i in range(1, 11)], console=console
+    )
     widget = prompt._build_widget()
 
     expected = """
