@@ -70,6 +70,8 @@ class SelectWidget(Generic[T]):
         self.cursor = (self.cursor + delta) % len(self.choices)
 
     def handle_key(self, key: str) -> bool:
+        key = keys.vim_motion(key)
+
         match key:
             case keys.DOWN:
                 self.move(1)

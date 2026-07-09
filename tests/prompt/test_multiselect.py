@@ -42,6 +42,11 @@ def test_that_choices_can_be_unselected(multiselect: MultiSelect):
         assert multiselect() == ["a"]
 
 
+def test_that_vim_keys_navigate(multiselect: MultiSelect):
+    with simulate_keys(["j", keys.SPACE, "k", "k", keys.ENTER]):
+        assert multiselect() == ["b"]
+
+
 def test_that_space_toggles(multiselect: MultiSelect):
     with simulate_keys([keys.SPACE, keys.UP, keys.ENTER]):
         assert multiselect() == ["a"]

@@ -91,6 +91,8 @@ class MultiSelectWidget(Generic[T]):
         return self.cursor == len(self.choices)
 
     def handle_key(self, key: str) -> bool:
+        key = keys.vim_motion(key)
+
         match key:
             case keys.DOWN:
                 self.move(1)
