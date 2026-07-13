@@ -17,8 +17,8 @@ Call the instance for a reusable prompt, or use the ``.ask()`` class method for 
     from richer_prompt import Select
 
     # Reusable prompt instance
-    select_prompt = Select("Select a color:", choices=["Red", "Green", "Blue"])
-    choice = select_prompt()
+    select_color = Select("Select a color:", choices=["Red", "Green", "Blue"])
+    choice = select_color()
 
     # One-off prompt
     choice = Select.ask("Select a color:", choices=["Red", "Green", "Blue"])
@@ -37,6 +37,24 @@ or as a :py:class:`rich.text.Text` instance.
     Select.ask("[cyan]?[/cyan] Select a [i]color[/i]:", choices=["Red", "Green", "Blue"])
 
 See the :ref:`api` for details on each prompt class and their available options.
+
+Interactivity
+-------------
+
+Prompts read single keystrokes, so they require an interactive terminal.
+When standard input is not a TTY (for example a pipe or a CI job),
+prompts raise :py:exc:`richer_prompt.NotInteractiveError` before rendering anything.
+
+- Arrow keys (or vi-like keybindings :kbd:`k`, :kbd:`j`, etc) to move the cursor.
+- :kbd:`Home`/:kbd:`End` jump to the first/last option.
+- :kbd:`Tab`/:kbd:`Shift+Tab` to switch tabs in :py:class:`Tabs`.
+
+While a prompt is running:
+
+- :kbd:`Ctrl+C` raises :py:exc:`KeyboardInterrupt`.
+- :kbd:`Ctrl+D` (or :kbd:`Ctrl+Z` on Windows) raises :py:exc:`EOFError`.
+
+Handle both as you would for any other :py:func:`input` call.
 
 Choices
 -------
@@ -121,20 +139,6 @@ The following style names are available for customization:
           - ``magenta reverse``
           - Style for the currently active tab.
 
-Interactivity and cancellation
-------------------------------
-
-Prompts read single keystrokes, so they require an interactive terminal.
-When standard input is not a TTY (for example a pipe or a CI job),
-prompts raise :py:exc:`richer_prompt.NotInteractiveError` before rendering anything.
-
-While a prompt is running:
-
-- :kbd:`Ctrl+C` raises :py:exc:`KeyboardInterrupt`.
-- :kbd:`Ctrl+D` (or :kbd:`Ctrl+Z` on Windows) raises :py:exc:`EOFError`.
-
-Handle both as you would for any other :py:func:`input` call.
-
 Testing
 -------
 
@@ -147,17 +151,11 @@ so no interactive terminal is required.
     from richer_prompt import keys, Select
     from richer_prompt.testing import simulate_keys
 
+    select_color = Select("Choose a color:", ["Red", "Green", "Blue"])
 
-    def pick_color() -> str:
-        return Select.ask("Choose a color:", ["Red", "Green", "Blue"])
+    with simulate_keys([keys.DOWN, keys.ENTER]):
+        assert select_color() == "Green"
 
-
-    def test_pick_color():
-        with simulate_keys([keys.DOWN, keys.ENTER]):
-            assert pick_color() == "Green"
-
-If the keys run out while a prompt is still waiting for input,
-the key read raises :py:exc:`AssertionError`.
+If the keys run out while a prompt is still waiting for input, the key read raises :py:exc:`AssertionError`.
 Control keys behave like the real keyboard:
-``keys.CTRL_C`` raises :py:exc:`KeyboardInterrupt`
-and ``keys.CTRL_D`` raises :py:exc:`EOFError`.
+``keys.CTRL_C`` raises :py:exc:`KeyboardInterrupt` and ``keys.CTRL_D`` raises :py:exc:`EOFError`.
