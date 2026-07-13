@@ -19,7 +19,7 @@ pip install richer-prompt
 ```
 
 ```sh
-uv install richer-prompt
+uv add richer-prompt
 ```
 
 ## Demo
