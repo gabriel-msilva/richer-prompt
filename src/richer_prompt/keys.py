@@ -1,9 +1,17 @@
+"""
+Named keystrokes (arrows, Enter, Tab, Ctrl combos) carry a ``name`` such as "KEY_DOWN",
+while printable keys carry none and are their own character.
+See :func:`blessed.keyboard.get_curses_keycodes` for the full list of names.
+"""
+
 from typing import Final
 
 UP: Final = "KEY_UP"
 DOWN: Final = "KEY_DOWN"
 LEFT: Final = "KEY_LEFT"
 RIGHT: Final = "KEY_RIGHT"
+HOME: Final = "KEY_HOME"
+END: Final = "KEY_END"
 
 ENTER: Final = "KEY_ENTER"
 TAB: Final = "KEY_TAB"

@@ -47,6 +47,18 @@ def test_that_vim_keys_navigate(multiselect: MultiSelect):
         assert multiselect() == ["b"]
 
 
+def test_that_end_key_jumps_to_submit(multiselect: MultiSelect):
+    with simulate_keys([keys.END, keys.ENTER]):
+        assert multiselect() == []
+
+
+def test_that_home_key_jumps_to_first_choice(multiselect: MultiSelect):
+    with simulate_keys(
+        [keys.DOWN, keys.DOWN, keys.HOME, keys.SPACE, keys.UP, keys.ENTER]
+    ):
+        assert multiselect() == ["a"]
+
+
 def test_that_space_toggles(multiselect: MultiSelect):
     with simulate_keys([keys.SPACE, keys.UP, keys.ENTER]):
         assert multiselect() == ["a"]

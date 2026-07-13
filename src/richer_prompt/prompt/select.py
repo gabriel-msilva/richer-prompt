@@ -77,6 +77,10 @@ class SelectWidget(Generic[T]):
                 self.move(1)
             case keys.UP:
                 self.move(-1)
+            case keys.HOME:
+                self.cursor = 0
+            case keys.END:
+                self.cursor = len(self.choices) - 1
             case keys.ENTER:
                 self.submit()
             case _ if self.numbered and key.isdecimal():

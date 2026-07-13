@@ -35,6 +35,16 @@ def test_that_horizontal_vim_keys_are_inert(select: Select):
         assert select() == "a"
 
 
+def test_that_end_key_jumps_to_last_choice(select: Select):
+    with simulate_keys([keys.END, keys.ENTER]):
+        assert select() == "c"
+
+
+def test_that_home_key_jumps_to_first_choice(select: Select):
+    with simulate_keys([keys.DOWN, keys.DOWN, keys.HOME, keys.ENTER]):
+        assert select() == "a"
+
+
 @pytest.mark.parametrize(
     ("number", "expected"),
     [
