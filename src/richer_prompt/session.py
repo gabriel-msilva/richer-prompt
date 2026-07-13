@@ -94,11 +94,5 @@ def _real_key_source() -> Iterator[Callable[[], str]]:
 
 
 def _to_token(keystroke: Keystroke) -> str:
-    """
-    Map a blessed keystroke to a token from :mod:`richer_prompt.keys`.
-
-    Named keystrokes (arrows, Enter, Tab, Ctrl combos) carry a ``name`` such
-    as "KEY_DOWN", while printable keys carry none and are their own character.
-    See :func:`blessed.keyboard.get_curses_keycodes` for the full list of names.
-    """
+    """Map a blessed keystroke to a token from :mod:`richer_prompt.keys`."""
     return keystroke.name or str(keystroke)

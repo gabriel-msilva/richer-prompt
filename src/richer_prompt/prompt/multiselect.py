@@ -98,6 +98,10 @@ class MultiSelectWidget(Generic[T]):
                 self.move(1)
             case keys.UP:
                 self.move(-1)
+            case keys.HOME:
+                self.cursor = 0
+            case keys.END:
+                self.cursor = len(self.choices)  # the Submit row
             case keys.ENTER if self.is_on_submit():
                 self.submit()
             case keys.ENTER | keys.SPACE if not self.is_on_submit():

@@ -58,6 +58,10 @@ class TabsWidget(Generic[T]):
                 self.move(1)
             case keys.LEFT | keys.SHIFT_TAB:
                 self.move(-1)
+            case keys.HOME:
+                self.cursor = 0
+            case keys.END:
+                self.cursor = len(self.choices) - 1
             case keys.ENTER:
                 self.submit()
             case _:

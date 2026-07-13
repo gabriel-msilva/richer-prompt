@@ -34,6 +34,16 @@ def test_that_vertical_vim_keys_are_inert(tabs: Tabs):
         assert tabs() == "a"
 
 
+def test_that_end_key_jumps_to_last_choice(tabs: Tabs):
+    with simulate_keys([keys.END, keys.ENTER]):
+        assert tabs() == "c"
+
+
+def test_that_home_key_jumps_to_first_choice(tabs: Tabs):
+    with simulate_keys([keys.RIGHT, keys.RIGHT, keys.HOME, keys.ENTER]):
+        assert tabs() == "a"
+
+
 def test_that_shift_tab_move_to_previous(tabs: Tabs):
     with simulate_keys(
         [
