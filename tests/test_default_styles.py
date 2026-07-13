@@ -38,7 +38,7 @@ def test_that_default_styles_are_applied_at_prompt_time():
         width=60,
     )
 
-    with simulate_keys([keys.ENTER]):
+    with simulate_keys(keys.ENTER):
         Select.ask("Pick:", ["a", "b"], console=console)
 
     # default cursor style (magenta)
@@ -55,7 +55,7 @@ def test_that_custom_theme_overrides_defaults():
         theme=Theme({"richer_prompt.cursor": "bold red"}),
     )
 
-    with simulate_keys([keys.ENTER]):
+    with simulate_keys(keys.ENTER):
         Select.ask("Pick:", ["a", "b"], console=console)
 
     output = buffer.getvalue()

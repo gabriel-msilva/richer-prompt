@@ -14,44 +14,40 @@ def tabs(console) -> Tabs:
 
 def test_that_choice_is_selected(tabs: Tabs):
     with simulate_keys(
-        [
-            keys.RIGHT,
-            keys.TAB,
-            keys.LEFT,
-            keys.ENTER,
-        ]
+        keys.RIGHT,
+        keys.TAB,
+        keys.LEFT,
+        keys.ENTER,
     ):
         assert tabs() == "b"
 
 
 def test_that_vim_keys_navigate(tabs: Tabs):
-    with simulate_keys(["l", "l", "h", keys.ENTER]):
+    with simulate_keys("l", "l", "h", keys.ENTER):
         assert tabs() == "b"
 
 
 def test_that_vertical_vim_keys_are_inert(tabs: Tabs):
-    with simulate_keys(["j", "k", keys.ENTER]):
+    with simulate_keys("j", "k", keys.ENTER):
         assert tabs() == "a"
 
 
 def test_that_end_key_jumps_to_last_choice(tabs: Tabs):
-    with simulate_keys([keys.END, keys.ENTER]):
+    with simulate_keys(keys.END, keys.ENTER):
         assert tabs() == "c"
 
 
 def test_that_home_key_jumps_to_first_choice(tabs: Tabs):
-    with simulate_keys([keys.RIGHT, keys.RIGHT, keys.HOME, keys.ENTER]):
+    with simulate_keys(keys.RIGHT, keys.RIGHT, keys.HOME, keys.ENTER):
         assert tabs() == "a"
 
 
 def test_that_shift_tab_move_to_previous(tabs: Tabs):
     with simulate_keys(
-        [
-            keys.TAB,
-            keys.TAB,
-            keys.SHIFT_TAB,
-            keys.ENTER,
-        ]
+        keys.TAB,
+        keys.TAB,
+        keys.SHIFT_TAB,
+        keys.ENTER,
     ):
         assert tabs() == "b"
 
@@ -73,12 +69,12 @@ def test_that_shift_tab_move_to_previous(tabs: Tabs):
     ids=["left", "right"],
 )
 def test_that_cursor_doesnt_rollover(tabs: Tabs, keys, expected):
-    with simulate_keys(keys):
+    with simulate_keys(*keys):
         assert tabs() == expected
 
 
 def test_that_cursor_starts_at_index(tabs: Tabs):
-    with simulate_keys([keys.ENTER]):
+    with simulate_keys(keys.ENTER):
         assert tabs(index=1) == "b"
 
 
@@ -89,14 +85,14 @@ def test_that_index_out_of_range_raises(tabs: Tabs, index):
 
 
 def test_ask():
-    with simulate_keys([keys.RIGHT, keys.ENTER]):
+    with simulate_keys(keys.RIGHT, keys.ENTER):
         assert Tabs.ask("Select a choice:", ["a", "b", "c"], index=1) == "c"
 
 
 def test_that_answer_is_rendered(tabs: Tabs):
     with (
         tabs.console.capture() as capture,
-        simulate_keys([keys.RIGHT, keys.ENTER]),
+        simulate_keys(keys.RIGHT, keys.ENTER),
     ):
         tabs()
 

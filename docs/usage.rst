@@ -153,7 +153,7 @@ so no interactive terminal is required.
 
     select_color = Select("Choose a color:", ["Red", "Green", "Blue"])
 
-    with simulate_keys([keys.DOWN, keys.ENTER]):
+    with simulate_keys(keys.DOWN, keys.ENTER):
         assert select_color() == "Green"
 
 If the keys run out while a prompt is still waiting for input, the key read raises :py:exc:`AssertionError`.

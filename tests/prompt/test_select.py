@@ -15,33 +15,31 @@ def select(console) -> Select:
 
 def test_that_choice_is_selected(select: Select):
     with simulate_keys(
-        [
-            keys.DOWN,
-            keys.DOWN,
-            keys.UP,
-            keys.ENTER,
-        ]
+        keys.DOWN,
+        keys.DOWN,
+        keys.UP,
+        keys.ENTER,
     ):
         assert select() == "b"
 
 
 def test_that_vim_keys_navigate(select: Select):
-    with simulate_keys(["j", "j", "k", keys.ENTER]):
+    with simulate_keys("j", "j", "k", keys.ENTER):
         assert select() == "b"
 
 
 def test_that_horizontal_vim_keys_are_inert(select: Select):
-    with simulate_keys(["h", "l", keys.ENTER]):
+    with simulate_keys("h", "l", keys.ENTER):
         assert select() == "a"
 
 
 def test_that_end_key_jumps_to_last_choice(select: Select):
-    with simulate_keys([keys.END, keys.ENTER]):
+    with simulate_keys(keys.END, keys.ENTER):
         assert select() == "c"
 
 
 def test_that_home_key_jumps_to_first_choice(select: Select):
-    with simulate_keys([keys.DOWN, keys.DOWN, keys.HOME, keys.ENTER]):
+    with simulate_keys(keys.DOWN, keys.DOWN, keys.HOME, keys.ENTER):
         assert select() == "a"
 
 
@@ -56,7 +54,7 @@ def test_that_home_key_jumps_to_first_choice(select: Select):
     ],
 )
 def test_that_number_key_selects(select: Select, number: int, expected: str):
-    with simulate_keys([str(number), keys.ENTER]):
+    with simulate_keys(str(number), keys.ENTER):
         assert select() == expected
 
 
@@ -65,7 +63,7 @@ def test_that_numbering_is_disabled_for_more_than_9_choices(console):
         "Select a choice:", [f"Choice {i}" for i in range(1, 13)], console=console
     )
 
-    with simulate_keys(["5", keys.ENTER]):
+    with simulate_keys("5", keys.ENTER):
         assert select() == "Choice 1"
 
 
@@ -77,7 +75,7 @@ def test_that_digit_keys_work_when_numbers_enabled(console):
         console=console,
     )
 
-    with simulate_keys(["5", keys.ENTER]):
+    with simulate_keys("5", keys.ENTER):
         assert select() == "Choice 5"
 
 
@@ -86,7 +84,7 @@ def test_that_digit_keys_are_inert_when_numbering_disabled(console):
         "Select a choice:", ["a", "b", "c"], numbered=False, console=console
     )
 
-    with simulate_keys(["2", keys.ENTER]):
+    with simulate_keys("2", keys.ENTER):
         assert select() == "a"
 
 
@@ -107,12 +105,12 @@ def test_that_digit_keys_are_inert_when_numbering_disabled(console):
     ids=["up", "down"],
 )
 def test_rollover(select: Select, keys, expected):
-    with simulate_keys(keys):
+    with simulate_keys(*keys):
         assert select() == expected
 
 
 def test_that_cursor_starts_at_index(select: Select):
-    with simulate_keys([keys.ENTER]):
+    with simulate_keys(keys.ENTER):
         assert select(index=1) == "b"
 
 
@@ -133,14 +131,14 @@ def test_that_viewport_size_defaults_to_terminal_height(height, expected):
 
 
 def test_ask():
-    with simulate_keys([keys.UP, keys.ENTER]):
+    with simulate_keys(keys.UP, keys.ENTER):
         assert Select.ask("Select a choice:", ["a", "b", "c"], index=1) == "a"
 
 
 def test_that_answer_is_rendered(select: Select):
     with (
         select.console.capture() as capture,
-        simulate_keys([keys.DOWN, keys.ENTER]),
+        simulate_keys(keys.DOWN, keys.ENTER),
     ):
         select()
 
