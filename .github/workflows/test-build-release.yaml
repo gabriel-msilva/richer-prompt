@@ -57,7 +57,6 @@ jobs:
         uses: astral-sh/setup-uv@v8.3.1
         with:
           version: "${{ env.UV_VERSION }}"
-          python-version: "3.11"
 
       - name: Run tests
         run: uv run --resolution lowest-direct pytest --color yes
@@ -72,7 +71,6 @@ jobs:
         uses: astral-sh/setup-uv@v8.3.1
         with:
           version: "${{ env.UV_VERSION }}"
-          python-version: "3.11"
 
       - name: Build Sphinx docs
         run: |
@@ -100,7 +98,6 @@ jobs:
         uses: astral-sh/setup-uv@v8.3.1
         with:
           version: "${{ env.UV_VERSION }}"
-          python-version: "3.11"
 
       - name: Build Python package
         run: uv build --no-sources
