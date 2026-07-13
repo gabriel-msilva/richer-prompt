@@ -8,7 +8,7 @@ __all__ = ["simulate_keys"]
 
 
 @contextlib.contextmanager
-def simulate_keys(keys: Sequence[str]) -> Iterator[None]:
+def simulate_keys(*keys: str) -> Iterator[None]:
     """
     Simulate keyboard input for prompts run within the context block.
 
@@ -19,7 +19,7 @@ def simulate_keys(keys: Sequence[str]) -> Iterator[None]:
 
     Parameters
     ----------
-    keys: sequence of str
+    *keys: str
         The keys to deliver, e.g. :py:data:`richer_prompt.keys.DOWN` or plain
         characters. Control keys behave like the real keyboard:
         ``richer_prompt.keys.CTRL_C`` raises ``KeyboardInterrupt`` and
@@ -34,7 +34,7 @@ def simulate_keys(keys: Sequence[str]) -> Iterator[None]:
     --------
     >>> from richer_prompt import keys, Select
     >>> from richer_prompt.testing import simulate_keys
-    >>> with simulate_keys([keys.DOWN, keys.ENTER]):
+    >>> with simulate_keys(keys.DOWN, keys.ENTER):
     ...     Select.ask("Choose a color:", ["Red", "Green", "Blue"])
     'Green'
     """
