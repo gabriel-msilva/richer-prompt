@@ -785,7 +785,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "blessed", specifier = ">=1.46.0" },
+    { name = "blessed", specifier = ">=1.17.9" },
     { name = "rich", specifier = ">=13.0.0" },
 ]
 
