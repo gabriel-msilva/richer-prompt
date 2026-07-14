@@ -76,13 +76,19 @@ class TabsWidget(Generic[T]):
             rows.append(self.message)
             rows.append(Text())
 
-        cells = [arrow_cell(LEFT_ARROW, self.cursor == 0)]
-        cells.extend(
+        tabs = (
             tab_cell(choice, i == self.cursor) for i, choice in enumerate(self.choices)
         )
-        cells.append(arrow_cell(RIGHT_ARROW, self.cursor == len(self.choices) - 1))
 
-        rows.append(Text(" ").join(cells))
+        rows.append(
+            Text.assemble(
+                arrow_cell(LEFT_ARROW, self.cursor == 0),
+                " ",
+                *tabs,
+                " ",
+                arrow_cell(RIGHT_ARROW, self.cursor == len(self.choices) - 1),
+            )
+        )
         rows.append(Text(self.current.description, style="richer_prompt.description"))
 
         return Group(*rows)

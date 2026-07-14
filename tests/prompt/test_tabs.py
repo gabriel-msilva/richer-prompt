@@ -103,7 +103,7 @@ def test_that_str_choices_are_rendered(tabs: Tabs):
     expected = """
     Select a choice:
 
-    ←  a   b   c  →
+    ←  a  b  c  →
 
     """
 
@@ -123,7 +123,7 @@ def test_that_labels_and_descriptions_are_rendered():
     expected = """
     Select a choice:
 
-    ←  Choice A   b   Choice C  →
+    ←  Choice A  b  Choice C  →
 
     """
 
@@ -132,7 +132,7 @@ def test_that_labels_and_descriptions_are_rendered():
     expected = """
     Select a choice:
 
-    ←  Choice A   b   Choice C  →
+    ←  Choice A  b  Choice C  →
     The second choice
     """
 
@@ -152,7 +152,7 @@ def test_style():
     expected = """
     [richer_prompt.title]Select a choice:[/]
 
-    [richer_prompt.hint]←[/] [richer_prompt.tab.active] a [/]  b   c  →
+    [richer_prompt.hint]←[/] [richer_prompt.tab.active] a [/] b  c  →
     [richer_prompt.description]The first choice[/]
     """
 
