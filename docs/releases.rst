@@ -3,6 +3,15 @@ Release notes
 
 .. currentmodule:: richer_prompt
 
+Version 0.3.0 (unreleased)
+--------------------------
+
+Fixes
+~~~~~
+
+- Reduced spacing between tabs in :py:class:`Tabs`.
+
+
 Version 0.2.0 (2026-07-13)
 --------------------------
 
@@ -35,6 +44,7 @@ Fixes
 - :kbd:`Ctrl+C` raises :py:exc:`KeyboardInterrupt` and :kbd:`Ctrl+D` (or :kbd:`Ctrl+Z` on Windows)
   raises :py:exc:`EOFError` while a prompt is running.
 - Removed unused style names from the docs.
+
 
 Version 0.1.0 (2026-06-13)
 --------------------------
