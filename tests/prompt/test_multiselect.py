@@ -459,7 +459,7 @@ def test_style():
     expected = """
     [richer_prompt.title]Select multiple choices:[/]
 
-    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.checkbox.checked][✓][/] [richer_prompt.cursor]a[/]  [richer_prompt.description]The first choice[/]
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.selected][✓][/] [richer_prompt.cursor]a[/]  [richer_prompt.description]The first choice[/]
       [richer_prompt.description]2. [/][ ] b  [richer_prompt.description]The second choice[/]
       [richer_prompt.description]3. [/][ ] c  [richer_prompt.description]The third choice[/]
          Submit

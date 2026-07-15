@@ -126,12 +126,9 @@ The following style names are available for customization:
         * - ``richer_prompt.cursor``
           - ``magenta``
           - Active cursor indicator for the current option.
-        * - ``richer_prompt.checkbox``
-          - `null`
-          - Base style for checkbox markers in multiselect prompts.
-        * - ``richer_prompt.checkbox.checked``
+        * - ``richer_prompt.selected``
           - ``green``
-          - Checkbox marker style for selected items.
+          - Style for selected choice labels or checkboxes.
         * - ``richer_prompt.tab``
           - `null`
           - Base style for tab labels.

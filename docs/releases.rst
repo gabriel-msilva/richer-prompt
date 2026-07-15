@@ -6,6 +6,12 @@ Release notes
 Version 0.3.0 (unreleased)
 --------------------------
 
+API changes
+~~~~~~~~~~~
+
+- Replaced the ``richer_prompt.checkbox`` and ``richer_prompt.checkbox.checked`` styles
+  with a single ``richer_prompt.selected`` style name.
+
 Fixes
 ~~~~~
 
