@@ -53,18 +53,25 @@ class SelectWidget(Generic[T]):
         self.viewport_size = viewport_size
         self.show_hint = show_hint
 
-        self._submitted = False
-
-    @property
-    def submitted(self) -> bool:
-        return self._submitted
+        self._selected: int | None = None
 
     @property
     def current(self) -> Choice[T]:
         return self.choices[self.cursor]
 
+    @property
+    def selected(self) -> Choice[T] | None:
+        if self._selected is None:
+            return None
+
+        return self.choices[self._selected]
+
+    @property
+    def submitted(self) -> bool:
+        return self._selected is not None
+
     def submit(self) -> None:
-        self._submitted = True
+        self._selected = self.cursor
 
     def move(self, delta: int) -> None:
         self.cursor = (self.cursor + delta) % len(self.choices)
@@ -105,6 +112,8 @@ class SelectWidget(Generic[T]):
 
         for i in viewport:
             is_focused = i == self.cursor
+            is_selected = i == self._selected
+
             pointer = pointer_cell(
                 self.cursor_pointer, is_focused, i, viewport, len(self.choices)
             )
@@ -114,7 +123,7 @@ class SelectWidget(Generic[T]):
                     pointer,
                     " ",
                     number_cell(i, number_width) if self.numbered else Text(),
-                    choice_label(self.choices[i], is_focused),
+                    choice_label(self.choices[i], is_focused, is_selected),
                 )
             )
 

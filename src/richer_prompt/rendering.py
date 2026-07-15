@@ -14,14 +14,17 @@ RIGHT_ARROW: Final = "→"
 UP_ARROW: Final = "↑"
 DOWN_ARROW: Final = "↓"
 
-BULLET: Final = "•"
 MIDDLE_DOT: Final = "·"
+BULLET: Final = "•"
+BLACK_CIRCLE: Final = "●"
 
 BALLOT_BOX: Final = "☐"
 BALLOT_BOX_WITH_CHECK: Final = "☑"
 BALLOT_BOX_WITH_X: Final = "☒"
 
 CHECK_MARK: Final = "✓"
+HEAVY_CHECK_MARK: Final = "✔"
+WARNING_SIGN: Final = "⚠"
 BALLOT_X: Final = "✗"
 
 
@@ -67,9 +70,9 @@ def number_cell(index: int, width: int) -> Text:
 
 def checkbox_cell(checked: bool) -> Text:
     if checked:
-        return Text(f"[{CHECK_MARK}]", style="richer_prompt.checkbox.checked")
+        return Text(f"[{CHECK_MARK}]", style="richer_prompt.selected")
 
-    return Text("[ ]", style="richer_prompt.checkbox")
+    return Text("[ ]", style="richer_prompt.choice")
 
 
 def tab_cell(choice: Choice, focused: bool) -> Text:
@@ -103,12 +106,17 @@ def pointer_cell(
     return cursor_cell(pointer, active=False)
 
 
-def choice_label(choice: Choice, focused: bool) -> Text:
+def choice_label(choice: Choice, focused: bool, selected: bool = False) -> Text:
     label = Text()
-    label.append(
-        choice.display,
-        style="richer_prompt.cursor" if focused else "richer_prompt.choice",
-    )
+
+    if selected:
+        style = "richer_prompt.selected"
+    elif focused:
+        style = "richer_prompt.cursor"
+    else:
+        style = "richer_prompt.choice"
+
+    label.append(choice.display, style=style)
 
     if choice.description:
         label.append("  ")

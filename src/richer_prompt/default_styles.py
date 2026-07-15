@@ -8,10 +8,10 @@ RICHER_PROMPT_STYLES: dict[str, Style] = {
     "richer_prompt.hint": Style(dim=True),
     "richer_prompt.choice": Style.null(),
     "richer_prompt.cursor": Style(color="magenta"),
-    "richer_prompt.checkbox": Style.null(),
-    "richer_prompt.checkbox.checked": Style(color="green"),
+    "richer_prompt.selected": Style(color="green"),
     "richer_prompt.tab": Style.null(),
     "richer_prompt.tab.active": Style(color="magenta", reverse=True),
+    "richer_prompt.warning": Style(color="yellow"),
 }
 
 
