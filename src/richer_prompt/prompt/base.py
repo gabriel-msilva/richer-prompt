@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.text import TextType
 
 from richer_prompt.choices import Choice, ensure_choice
+from richer_prompt.rendering import ensure_text
 from richer_prompt.session import Widget, run
 
 T = TypeVar("T")
@@ -42,11 +43,12 @@ class ChoicePrompt(ABC, Generic[T, R_co]):
         *,
         console: Console | None = None,
     ):
+        self.message = ensure_text(message, default_style="richer_prompt.title")
+
         self.choices: list[Choice[T]] = [ensure_choice(choice) for choice in choices]
         if not self.choices:
             raise ValueError("choices cannot be empty")
 
-        self.message = message
         self.console = console or get_console()
 
     @classmethod

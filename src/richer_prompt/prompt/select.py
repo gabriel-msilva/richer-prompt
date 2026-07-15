@@ -1,3 +1,4 @@
+import dataclasses
 from collections.abc import Iterable
 from typing import Final, Generic, TypeVar
 
@@ -12,7 +13,6 @@ from richer_prompt.rendering import (
     RIGHT_POINTER,
     UP_ARROW,
     choice_label,
-    ensure_text,
     format_hint,
     number_cell,
     pointer_cell,
@@ -27,33 +27,24 @@ T = TypeVar("T")
 VIEWPORT_OVERHEAD: Final = 5
 
 
+@dataclasses.dataclass(slots=True)
 class SelectWidget(Generic[T]):
-    def __init__(
-        self,
-        choices: list[Choice[T]],
-        cursor: int = 0,
-        *,
-        message: TextType,
-        cursor_pointer: str,
-        numbered: bool,
-        viewport_size: int,
-        show_hint: bool,
-    ):
-        if cursor < 0 or cursor >= len(choices):
-            raise ValueError(f"Index '{cursor}' is out of range")
+    message: Text
+    choices: list[Choice[T]]
+    cursor: int
+    cursor_pointer: str
+    numbered: bool
+    viewport_size: int
+    show_hint: bool
 
-        if viewport_size < 3:
-            raise ValueError(f"Viewport size '{viewport_size}' must be at least 3")
+    _selected: int | None = dataclasses.field(init=False, default=None)
 
-        self.choices = choices
-        self.cursor = cursor
-        self.message = ensure_text(message, default_style="richer_prompt.title")
-        self.cursor_pointer = cursor_pointer
-        self.numbered = numbered
-        self.viewport_size = viewport_size
-        self.show_hint = show_hint
+    def __post_init__(self):
+        if self.cursor < 0 or self.cursor >= len(self.choices):
+            raise ValueError(f"Index '{self.cursor}' is out of range")
 
-        self._selected: int | None = None
+        if self.viewport_size < 3:
+            raise ValueError(f"Viewport size '{self.viewport_size}' must be at least 3")
 
     @property
     def current(self) -> Choice[T]:
@@ -294,9 +285,9 @@ class Select(ChoicePrompt[T, T]):
         )
 
         return SelectWidget(
-            self.choices,
-            cursor=index,
             message=self.message,
+            choices=self.choices,
+            cursor=index,
             cursor_pointer=self.cursor_pointer,
             numbered=resolve_numbered(self.numbered, self.choices, viewport_size),
             viewport_size=viewport_size,

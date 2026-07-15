@@ -1,3 +1,4 @@
+import dataclasses
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
@@ -11,36 +12,31 @@ from richer_prompt.rendering import (
     LEFT_ARROW,
     RIGHT_ARROW,
     arrow_cell,
-    ensure_text,
     tab_cell,
 )
 
 T = TypeVar("T")
 
 
+@dataclasses.dataclass(slots=True)
 class TabsWidget(Generic[T]):
-    def __init__(
-        self,
-        choices: list[Choice[T]],
-        cursor: int = 0,
-        *,
-        message: TextType,
-    ):
-        if cursor < 0 or cursor >= len(choices):
-            raise ValueError(f"Index '{cursor}' is out of range")
+    message: Text
+    choices: list[Choice[T]]
+    cursor: int
 
-        self.choices = choices
-        self.cursor = cursor
-        self.message = ensure_text(message, default_style="richer_prompt.title")
-        self._submitted = False
+    _submitted: bool = dataclasses.field(init=False, default=False)
 
-    @property
-    def submitted(self) -> bool:
-        return self._submitted
+    def __post_init__(self):
+        if self.cursor < 0 or self.cursor >= len(self.choices):
+            raise ValueError(f"Index '{self.cursor}' is out of range")
 
     @property
     def current(self) -> Choice[T]:
         return self.choices[self.cursor]
+
+    @property
+    def submitted(self) -> bool:
+        return self._submitted
 
     def submit(self) -> None:
         self._submitted = True
@@ -182,8 +178,4 @@ class Tabs(ChoicePrompt[T, T]):
 
     def _build_widget(self, index: int = 0) -> TabsWidget[T]:
         """Build a fresh widget for one prompt run."""
-        return TabsWidget(
-            self.choices,
-            cursor=index,
-            message=self.message,
-        )
+        return TabsWidget(message=self.message, choices=self.choices, cursor=index)

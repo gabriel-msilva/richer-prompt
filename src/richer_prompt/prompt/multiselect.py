@@ -1,3 +1,4 @@
+import dataclasses
 from collections.abc import Iterable
 from typing import Final, Generic, TypeVar
 
@@ -14,7 +15,6 @@ from richer_prompt.rendering import (
     checkbox_cell,
     choice_label,
     cursor_cell,
-    ensure_text,
     format_hint,
     number_cell,
     pointer_cell,
@@ -29,42 +29,30 @@ T = TypeVar("T")
 VIEWPORT_OVERHEAD: Final = 6
 
 
+@dataclasses.dataclass(slots=True)
 class MultiSelectWidget(Generic[T]):
-    def __init__(
-        self,
-        choices: list[Choice[T]],
-        cursor: int = 0,
-        selected: set[int] | None = None,
-        *,
-        message: TextType,
-        cursor_pointer: str,
-        numbered: bool,
-        viewport_size: int,
-        show_hint: bool,
-    ):
-        selected = set(selected or [])
+    message: Text
+    choices: list[Choice[T]]
+    cursor: int
+    checked: set[int]
+    cursor_pointer: str
+    numbered: bool
+    viewport_size: int
+    show_hint: bool
 
+    _submitted: bool = dataclasses.field(init=False, default=False)
+
+    def __post_init__(self):
         # may point to the submit button
-        if cursor < 0 or cursor > len(choices):
-            raise ValueError(f"Index '{cursor}' is out of range")
+        if self.cursor < 0 or self.cursor > len(self.choices):
+            raise ValueError(f"Index '{self.cursor}' is out of range")
 
-        offenders = [x for x in selected if x < 0 or x >= len(choices)]
+        offenders = [x for x in self.checked if x < 0 or x >= len(self.choices)]
         if offenders:
             raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
 
-        if viewport_size < 3:
-            raise ValueError(f"Viewport size '{viewport_size}' must be at least 3")
-
-        self.choices = choices
-        self.cursor = cursor
-        self.selected = selected
-        self.message = ensure_text(message, default_style="richer_prompt.title")
-        self.cursor_pointer = cursor_pointer
-        self.numbered = numbered
-        self.viewport_size = viewport_size
-        self.show_hint = show_hint
-
-        self._submitted = False
+        if self.viewport_size < 3:
+            raise ValueError(f"Viewport size '{self.viewport_size}' must be at least 3")
 
     @property
     def submitted(self) -> bool:
@@ -72,7 +60,7 @@ class MultiSelectWidget(Generic[T]):
 
     @property
     def selected_choices(self) -> list[Choice[T]]:
-        return [self.choices[i] for i in sorted(self.selected)]
+        return [self.choices[i] for i in sorted(self.checked)]
 
     def submit(self) -> None:
         self._submitted = True
@@ -82,10 +70,10 @@ class MultiSelectWidget(Generic[T]):
         self.cursor = (self.cursor + delta) % total_rows
 
     def toggle(self) -> None:
-        if self.cursor in self.selected:
-            self.selected.remove(self.cursor)
+        if self.cursor in self.checked:
+            self.checked.remove(self.cursor)
         else:
-            self.selected.add(self.cursor)
+            self.checked.add(self.cursor)
 
     def is_on_submit(self) -> bool:
         return self.cursor == len(self.choices)
@@ -137,7 +125,7 @@ class MultiSelectWidget(Generic[T]):
                     pointer,
                     " ",
                     number_cell(i, number_width) if self.numbered else Text(),
-                    checkbox_cell(i in self.selected),
+                    checkbox_cell(i in self.checked),
                     " ",
                     choice_label(self.choices[i], is_focused),
                 )
@@ -341,10 +329,10 @@ class MultiSelect(ChoicePrompt[T, list[T]]):
         )
 
         return MultiSelectWidget(
-            self.choices,
-            cursor=index,
-            selected=default,
             message=self.message,
+            choices=self.choices,
+            cursor=index,
+            checked=set(default or []),
             cursor_pointer=self.cursor_pointer,
             numbered=resolve_numbered(self.numbered, self.choices, viewport_size),
             viewport_size=viewport_size,
