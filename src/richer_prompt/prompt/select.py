@@ -1,5 +1,5 @@
 import dataclasses
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import Final, Generic, TypeVar
 
 from rich.console import Console, Group
@@ -20,6 +20,7 @@ from richer_prompt.rendering import (
     resolve_viewport_size,
     viewport_slice,
 )
+from richer_prompt.session import CONSUMED, IGNORED, Done, KeyOutcome
 
 T = TypeVar("T")
 
@@ -37,9 +38,9 @@ class SelectWidget(Generic[T]):
     viewport_size: int
     show_hint: bool
 
-    # Hook invoked whenever the choice is submitted; set by drivers such as Form.
-    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
-
+    # Index committed at submit time. The cursor is only navigational, so the
+    # answer must be snapshotted: revisiting a Form step and moving the cursor
+    # (without a fresh Enter) leaves the recorded choice unchanged.
     _selected: int | None = dataclasses.field(init=False, default=None)
 
     def __post_init__(self):
@@ -61,18 +62,17 @@ class SelectWidget(Generic[T]):
         return self.choices[self._selected]
 
     @property
-    def submitted(self) -> bool:
+    def answered(self) -> bool:
         return self._selected is not None
 
     def submit(self) -> None:
+        """Commit the choice under the cursor as this widget's answer."""
         self._selected = self.cursor
-        if self.on_submit is not None:
-            self.on_submit()
 
     def move(self, delta: int) -> None:
         self.cursor = (self.cursor + delta) % len(self.choices)
 
-    def handle_key(self, key: str) -> bool:
+    def handle_key(self, key: str) -> KeyOutcome:
         key = keys.vim_motion(key)
 
         match key:
@@ -86,15 +86,17 @@ class SelectWidget(Generic[T]):
                 self.cursor = len(self.choices) - 1
             case keys.ENTER:
                 self.submit()
+                return Done(self.result())
             case _ if self.numbered and key.isdecimal():
                 n = int(key) - 1
                 if 0 <= n < len(self.choices):
                     self.cursor = n
                     self.submit()
+                    return Done(self.result())
             case _:
-                return False
+                return IGNORED
 
-        return True
+        return CONSUMED
 
     def render(self) -> Group:
         rows: list[Text] = []

@@ -28,4 +28,6 @@ API Reference
 
 .. autoexception:: richer_prompt.NotInteractiveError
 
+.. autoexception:: richer_prompt.PromptCancelled
+
 .. autofunction:: richer_prompt.testing.simulate_keys

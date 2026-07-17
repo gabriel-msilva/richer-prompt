@@ -1,6 +1,6 @@
 import pytest
 
-from richer_prompt import keys
+from richer_prompt import PromptCancelled, keys
 from richer_prompt.prompt import Form, MultiSelect, Select, Tabs
 from richer_prompt.testing import simulate_keys
 from tests.utils import assert_snapshot, assert_widget_snapshot
@@ -108,7 +108,7 @@ def test_that_vim_keys_navigate(form: Form):
 def test_that_cancel_aborts_the_form(form: Form):
     with (
         simulate_keys(keys.RIGHT, keys.RIGHT, keys.DOWN, keys.ENTER),
-        pytest.raises(KeyboardInterrupt),
+        pytest.raises(PromptCancelled),
     ):
         form()
 

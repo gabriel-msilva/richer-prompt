@@ -1,5 +1,4 @@
 import dataclasses
-from collections.abc import Callable
 from typing import Any
 
 from rich import get_console
@@ -23,7 +22,7 @@ from richer_prompt.rendering import (
     format_hint,
     label_cell,
 )
-from richer_prompt.session import run
+from richer_prompt.session import CANCELLED, CONSUMED, Done, KeyOutcome, run
 
 
 @dataclasses.dataclass(slots=True)
@@ -34,17 +33,9 @@ class FormWidget:
     confirm: SelectWidget[bool]
     cursor: int
 
-    # Hook invoked when the form is submitted; set by drivers such as run().
-    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
-
     def __post_init__(self):
         if self.cursor < 0 or self.cursor > len(self.steps):
             raise ValueError(f"Index '{self.cursor}' is out of range")
-
-        for step in self.steps.values():
-            step.on_submit = self._advance
-
-        self.confirm.on_submit = self._confirm
 
     @property
     def on_review(self) -> bool:
@@ -57,39 +48,41 @@ class FormWidget:
     def move(self, delta: int) -> None:
         self.cursor = max(0, min(len(self.steps), self.cursor + delta))
 
-    def _advance(self) -> None:
-        self.move(1)
-
-    def _confirm(self) -> None:
-        if self.confirm.result():
-            if self.on_submit is not None:
-                self.on_submit()
-        else:
-            raise KeyboardInterrupt
-
-    def _is_answered(self, step: SelectWidget | MultiSelectWidget) -> bool:
-        # A MultiSelect counts as answered as soon as a choice is checked, so
-        # toggling records the answer without confirming the Submit row.
-        if isinstance(step, MultiSelectWidget):
-            return step.submitted or bool(step.checked)
-
-        return step.submitted
-
-    def handle_key(self, key: str) -> bool:
+    def handle_key(self, key: str) -> KeyOutcome:
         key = keys.vim_motion(key)
 
         match key:
             case keys.LEFT | keys.SHIFT_TAB:
                 self.move(-1)
-                return True
+                return CONSUMED
             case keys.RIGHT | keys.TAB:
                 self.move(1)
-                return True
+                return CONSUMED
 
-        if not self.on_review:
-            return self.focused_step.handle_key(key)
+        if self.on_review:
+            return self._handle_confirm(key)
 
-        return self.confirm.handle_key(key)
+        return self._handle_step(key)
+
+    def _handle_step(self, key: str) -> KeyOutcome:
+        outcome = self.focused_step.handle_key(key)
+
+        # A step signals completion by returning Done (the step owns its own
+        # answer); in a form that just advances to the next step rather than
+        # ending the run, so the event is swallowed here.
+        if isinstance(outcome, Done):
+            self.move(1)
+            return CONSUMED
+
+        return outcome
+
+    def _handle_confirm(self, key: str) -> KeyOutcome:
+        outcome = self.confirm.handle_key(key)
+
+        if isinstance(outcome, Done):
+            return Done(self.result()) if outcome.value else CANCELLED
+
+        return outcome
 
     def render(self) -> RenderableType:
         rows: list[RenderableType] = [self._render_tabs(), Text()]
@@ -108,15 +101,13 @@ class FormWidget:
 
     def result(self) -> dict[str, Any]:
         return {
-            name: step.result()
-            for name, step in self.steps.items()
-            if self._is_answered(step)
+            name: step.result() for name, step in self.steps.items() if step.answered
         }
 
     def _render_tabs(self) -> Text:
         cells = [
             label_cell(
-                f"{BALLOT_BOX_WITH_X if self._is_answered(step) else BALLOT_BOX} {name}",
+                f"{BALLOT_BOX_WITH_X if step.answered else BALLOT_BOX} {name}",
                 focused=i == self.cursor,
             )
             for i, (name, step) in enumerate(self.steps.items())
@@ -136,7 +127,7 @@ class FormWidget:
             Text("Review your answers", style="richer_prompt.title")
         ]
 
-        if not all(self._is_answered(step) for step in self.steps.values()):
+        if not all(step.answered for step in self.steps.values()):
             sections.append(
                 Text(
                     f"{WARNING_SIGN} You have not answered all questions",
@@ -144,7 +135,7 @@ class FormWidget:
                 )
             )
 
-        answered = [step for step in self.steps.values() if self._is_answered(step)]
+        answered = [step for step in self.steps.values() if step.answered]
         if answered:
             sections.append(
                 Group(*(row for step in answered for row in _summary(step)))
@@ -187,7 +178,9 @@ class Form:
 
     Steps are shown one at a time with a tab bar to move between them, followed
     by a review step to submit all answers at once.
-    Only answered (submitted) steps appear in the result.
+    Only answered steps appear in the result.
+    Choosing *Cancel* on the review step raises
+    :py:exc:`~richer_prompt.PromptCancelled`.
 
     .. snapshot::
         :hide-code:

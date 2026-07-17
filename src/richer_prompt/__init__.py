@@ -2,7 +2,7 @@ from richer_prompt import keys
 from richer_prompt._version import get_version_dict
 from richer_prompt.choices import Choice
 from richer_prompt.prompt import Form, MultiSelect, Select, Tabs
-from richer_prompt.session import NotInteractiveError
+from richer_prompt.session import NotInteractiveError, PromptCancelled
 
 __all__ = [
     "__version__",
@@ -12,6 +12,7 @@ __all__ = [
     "Form",
     "Choice",
     "NotInteractiveError",
+    "PromptCancelled",
     "keys",
 ]
 
