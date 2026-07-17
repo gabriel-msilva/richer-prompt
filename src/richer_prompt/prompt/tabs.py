@@ -1,5 +1,5 @@
 import dataclasses
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import Generic, TypeVar
 
 from rich.console import Console, Group
@@ -14,6 +14,7 @@ from richer_prompt.rendering import (
     arrow_cell,
     tab_cell,
 )
+from richer_prompt.session import CONSUMED, IGNORED, Done, KeyOutcome
 
 T = TypeVar("T")
 
@@ -24,9 +25,6 @@ class TabsWidget(Generic[T]):
     choices: list[Choice[T]]
     cursor: int
 
-    # Hook invoked when a choice is submitted; set by drivers such as run().
-    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
-
     def __post_init__(self):
         if self.cursor < 0 or self.cursor >= len(self.choices):
             raise ValueError(f"Index '{self.cursor}' is out of range")
@@ -35,16 +33,12 @@ class TabsWidget(Generic[T]):
     def current(self) -> Choice[T]:
         return self.choices[self.cursor]
 
-    def submit(self) -> None:
-        if self.on_submit is not None:
-            self.on_submit()
-
     def move(self, delta: int) -> None:
         cursor = self.cursor + delta
 
         self.cursor = max(0, min(len(self.choices) - 1, cursor))
 
-    def handle_key(self, key: str) -> bool:
+    def handle_key(self, key: str) -> KeyOutcome:
         key = keys.vim_motion(key)
 
         match key:
@@ -57,11 +51,11 @@ class TabsWidget(Generic[T]):
             case keys.END:
                 self.cursor = len(self.choices) - 1
             case keys.ENTER:
-                self.submit()
+                return Done(self.result())
             case _:
-                return False
+                return IGNORED
 
-        return True
+        return CONSUMED
 
     def render(self) -> Group:
         rows: list[Text] = []

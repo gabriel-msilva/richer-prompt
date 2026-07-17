@@ -1,5 +1,5 @@
 import dataclasses
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import Final, Generic, TypeVar
 
 from rich.console import Console, Group
@@ -22,6 +22,7 @@ from richer_prompt.rendering import (
     resolve_viewport_size,
     viewport_slice,
 )
+from richer_prompt.session import CONSUMED, IGNORED, Done, KeyOutcome
 
 T = TypeVar("T")
 
@@ -40,10 +41,9 @@ class MultiSelectWidget(Generic[T]):
     viewport_size: int
     show_hint: bool
 
-    # Hook invoked whenever the choices are submitted; set by drivers such as Form.
-    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
-
-    submitted: bool = dataclasses.field(init=False, default=False)
+    # Set once the Submit row is chosen, so an intentionally empty selection
+    # still counts as an answer. A non-empty ``checked`` counts on its own.
+    _submitted: bool = dataclasses.field(init=False, default=False)
 
     def __post_init__(self):
         # may point to the submit button
@@ -58,13 +58,19 @@ class MultiSelectWidget(Generic[T]):
             raise ValueError(f"Viewport size '{self.viewport_size}' must be at least 3")
 
     @property
+    def answered(self) -> bool:
+        # A checked box is itself an explicit choice, so the step counts as
+        # answered as soon as anything is checked; pressing Submit also records
+        # an intentionally empty selection.
+        return self._submitted or bool(self.checked)
+
+    @property
     def selected_choices(self) -> list[Choice[T]]:
         return [self.choices[i] for i in sorted(self.checked)]
 
     def submit(self) -> None:
-        self.submitted = True
-        if self.on_submit is not None:
-            self.on_submit()
+        """Record that the Submit row was chosen."""
+        self._submitted = True
 
     def move(self, delta: int) -> None:
         total_rows = len(self.choices) + 1
@@ -79,7 +85,7 @@ class MultiSelectWidget(Generic[T]):
     def is_on_submit(self) -> bool:
         return self.cursor == len(self.choices)
 
-    def handle_key(self, key: str) -> bool:
+    def handle_key(self, key: str) -> KeyOutcome:
         key = keys.vim_motion(key)
 
         match key:
@@ -93,6 +99,7 @@ class MultiSelectWidget(Generic[T]):
                 self.cursor = len(self.choices)  # the Submit row
             case keys.ENTER if self.is_on_submit():
                 self.submit()
+                return Done(self.result())
             case keys.ENTER | keys.SPACE if not self.is_on_submit():
                 self.toggle()
             case _ if self.numbered and key.isdecimal():
@@ -101,9 +108,9 @@ class MultiSelectWidget(Generic[T]):
                     self.cursor = n
                     self.toggle()
             case _:
-                return False
+                return IGNORED
 
-        return True
+        return CONSUMED
 
     def render(self) -> Group:
         rows: list[Text] = []
