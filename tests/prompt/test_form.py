@@ -8,6 +8,7 @@ from tests.utils import assert_snapshot, assert_widget_snapshot
 
 @pytest.fixture
 def form(console) -> Form:
+    # The default form requires every step to be answered before submitting.
     return Form(
         {
             "Select": Select("Select an option:", ["a", "b", "c"], console=console),
@@ -19,55 +20,101 @@ def form(console) -> Form:
     )
 
 
+@pytest.fixture
+def optional_form(console) -> Form:
+    # required=False allows submitting with unanswered steps omitted.
+    return Form(
+        {
+            "Select": Select("Select an option:", ["a", "b", "c"], console=console),
+            "MultiSelect": MultiSelect(
+                "Select multiple options:", ["x", "y", "z"], console=console
+            ),
+        },
+        required=False,
+        console=console,
+    )
+
+
+def test_that_choices_are_selected_and_submitted(form: Form):
+    with simulate_keys(
+        # Select "a"
+        keys.ENTER,
+        # Select "x" and "z", submit
+        keys.ENTER,
+        keys.DOWN,
+        keys.DOWN,
+        keys.ENTER,
+        keys.DOWN,
+        keys.ENTER,
+        # Submit form
+        keys.ENTER,
+    ):
+        assert form() == {"Select": "a", "MultiSelect": ["x", "z"]}
+
+
 @pytest.mark.parametrize(
     ("keys", "expected"),
     [
-        (
-            [
-                # Select "a"
-                keys.ENTER,
-                # Select "x" and "z", submit
-                keys.ENTER,
-                keys.DOWN,
-                keys.DOWN,
-                keys.ENTER,
-                keys.DOWN,
-                keys.ENTER,
-                # Submit form
-                keys.ENTER,
-            ],
-            {"Select": "a", "MultiSelect": ["x", "z"]},
-        ),
-        (
-            [keys.ENTER, keys.RIGHT, keys.ENTER],
-            {"Select": "a"},
-        ),
-        (
-            [keys.RIGHT, keys.RIGHT, keys.ENTER],
-            {},
-        ),
+        ([keys.ENTER, keys.RIGHT, keys.ENTER], {"Select": "a"}),
+        ([keys.RIGHT, keys.RIGHT, keys.ENTER], {}),
     ],
-    ids=[
-        "all steps",
-        "partial steps",
-        "no steps",
-    ],
+    ids=["partial steps", "no steps"],
 )
-def test_that_choices_are_selected_and_submitted(form: Form, keys, expected):
+def test_that_an_optional_form_omits_unanswered_steps(
+    optional_form: Form, keys, expected
+):
     with simulate_keys(*keys):
-        assert form() == expected
+        assert optional_form() == expected
+
+
+def test_that_submit_is_blocked_until_all_steps_are_answered(form: Form):
+    with simulate_keys(
+        # answer only Select, then try to submit from the review
+        keys.ENTER,
+        keys.RIGHT,
+        keys.ENTER,  # "Submit answers" is refused: MultiSelect is unanswered
+        # go back, answer MultiSelect, then return and submit
+        keys.LEFT,
+        keys.ENTER,
+        keys.RIGHT,
+        keys.ENTER,
+    ):
+        assert form() == {"Select": "a", "MultiSelect": ["x"]}
+
+
+def test_that_an_explicitly_empty_multiselect_counts_as_answered(form: Form):
+    with simulate_keys(
+        keys.ENTER,  # Select "a"
+        keys.END,  # MultiSelect: jump to the Submit row
+        keys.ENTER,  # submit with nothing checked; still counts as answered
+        keys.ENTER,  # submit the form
+    ):
+        assert form() == {"Select": "a", "MultiSelect": []}
+
+
+def test_that_cancel_aborts_the_form(form: Form):
+    with (
+        # Cancel is allowed even though no step has been answered.
+        simulate_keys(keys.RIGHT, keys.RIGHT, keys.DOWN, keys.ENTER),
+        pytest.raises(PromptCancelled),
+    ):
+        form()
 
 
 def test_that_tab_and_shift_tab_navigate_between_steps(form: Form):
     with simulate_keys(
+        # walk to the review with Tab, then back to the start with Shift+Tab
         keys.TAB,
         keys.TAB,
         keys.SHIFT_TAB,
+        keys.SHIFT_TAB,
+        # answer both steps and submit
+        keys.ENTER,
         keys.UP,
         keys.ENTER,
         keys.ENTER,
     ):
-        assert form() == {"MultiSelect": []}
+        assert form() == {"Select": "a", "MultiSelect": []}
 
 
 def test_that_vertical_navigation_is_forwarded_to_focused_step(form: Form):
@@ -89,11 +136,13 @@ def test_that_vertical_navigation_is_forwarded_to_focused_step(form: Form):
 
 def test_that_vim_keys_navigate(form: Form):
     with simulate_keys(
-        # go to "Submit" step
+        # go right to the review, then left back to "Select"
         "l",
         "l",
-        # go back to "MultiSelect" step, toggle "y" and submit
         "h",
+        "h",
+        # select "a", then toggle "y" and submit
+        keys.ENTER,
         "j",
         keys.ENTER,
         "k",
@@ -102,36 +151,30 @@ def test_that_vim_keys_navigate(form: Form):
         # submit form
         keys.ENTER,
     ):
-        assert form() == {"MultiSelect": ["y"]}
-
-
-def test_that_cancel_aborts_the_form(form: Form):
-    with (
-        simulate_keys(keys.RIGHT, keys.RIGHT, keys.DOWN, keys.ENTER),
-        pytest.raises(PromptCancelled),
-    ):
-        form()
+        assert form() == {"Select": "a", "MultiSelect": ["y"]}
 
 
 @pytest.mark.parametrize(
-    ("keys", "expected"),
+    ("key", "index", "expected"),
     [
-        ([keys.LEFT, keys.ENTER, keys.RIGHT, keys.ENTER], {"Select": "a"}),
-        ([keys.RIGHT, keys.RIGHT, keys.RIGHT, keys.ENTER], {}),
+        (keys.LEFT, 0, 0),
+        (keys.RIGHT, 2, 2),
     ],
     ids=["left", "right"],
 )
-def test_that_steps_dont_rollover(form: Form, keys, expected):
-    with simulate_keys(*keys):
-        assert form() == expected
+def test_that_steps_dont_rollover(form: Form, key, index, expected):
+    widget = form._build_widget(index=index)
+    widget.handle_key(key)
+
+    assert widget.cursor == expected
 
 
 def test_that_runs_are_independent(form: Form):
-    with simulate_keys(keys.ENTER, keys.RIGHT, keys.ENTER):
-        assert form() == {"Select": "a"}
+    with simulate_keys(keys.ENTER, keys.END, keys.ENTER, keys.ENTER):
+        assert form() == {"Select": "a", "MultiSelect": []}
 
-    with simulate_keys(keys.RIGHT, keys.RIGHT, keys.ENTER):
-        assert form() == {}
+    with simulate_keys(keys.DOWN, keys.ENTER, keys.END, keys.ENTER, keys.ENTER):
+        assert form() == {"Select": "b", "MultiSelect": []}
 
 
 def test_ask():
@@ -169,44 +212,48 @@ def test_that_reselection_advances_to_next_step(form: Form):
         keys.LEFT,
         keys.DOWN,
         keys.ENTER,
-        # go forward and submit
-        keys.RIGHT,
+        # answer MultiSelect and submit
+        keys.END,
+        keys.ENTER,
         keys.ENTER,
     ):
-        assert form() == {"Select": "b"}
+        assert form() == {"Select": "b", "MultiSelect": []}
 
 
 def test_that_navigating_between_steps_does_not_update_previous_answers(form: Form):
     with simulate_keys(
         # select "a"
         keys.ENTER,
-        # go back and navigate choices
+        # go back and navigate choices without reselecting
         keys.LEFT,
         keys.DOWN,
-        # go forward and submit
+        # go forward, answer MultiSelect and submit
         keys.RIGHT,
-        keys.RIGHT,
+        keys.END,
+        keys.ENTER,
         keys.ENTER,
     ):
-        assert form() == {"Select": "a"}
+        assert form() == {"Select": "a", "MultiSelect": []}
 
 
 def test_that_toggling_a_multiselect_records_the_answer_without_submitting(form: Form):
     with simulate_keys(
-        # MultiSelect: toggle "x", then leave via the tab bar without submitting
-        keys.RIGHT,
+        # Select "a"
+        keys.ENTER,
+        # MultiSelect: toggle "x", then leave via the tab bar without its Submit row
         keys.ENTER,
         keys.RIGHT,
         # submit the form
         keys.ENTER,
     ):
-        assert form() == {"MultiSelect": ["x"]}
+        assert form() == {"Select": "a", "MultiSelect": ["x"]}
 
 
 def test_that_editing_a_submitted_multiselect_updates_the_answer(form: Form):
     with simulate_keys(
+        # Select "a"
+        keys.ENTER,
         # MultiSelect: select "x" and "z", then submit
-        keys.RIGHT,
         keys.ENTER,
         keys.DOWN,
         keys.DOWN,
@@ -221,7 +268,7 @@ def test_that_editing_a_submitted_multiselect_updates_the_answer(form: Form):
         keys.RIGHT,
         keys.ENTER,
     ):
-        assert form() == {"MultiSelect": ["x"]}
+        assert form() == {"Select": "a", "MultiSelect": ["x"]}
 
 
 def test_that_each_step_is_rendered(form: Form):
