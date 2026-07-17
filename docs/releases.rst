@@ -9,6 +9,7 @@ Version 0.3.0 (unreleased)
 API changes
 ~~~~~~~~~~~
 
+- Added :py:class:`Form`, which allows asking a sequence of choice prompts as a single, navigable form.
 - Replaced the ``richer_prompt.checkbox`` and ``richer_prompt.checkbox.checked`` styles
   with a single ``richer_prompt.selected`` style name.
 

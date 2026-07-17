@@ -1,5 +1,5 @@
 import dataclasses
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Generic, TypeVar
 
 from rich.console import Console, Group
@@ -24,7 +24,8 @@ class TabsWidget(Generic[T]):
     choices: list[Choice[T]]
     cursor: int
 
-    _submitted: bool = dataclasses.field(init=False, default=False)
+    # Hook invoked when a choice is submitted; set by drivers such as run().
+    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
 
     def __post_init__(self):
         if self.cursor < 0 or self.cursor >= len(self.choices):
@@ -34,12 +35,9 @@ class TabsWidget(Generic[T]):
     def current(self) -> Choice[T]:
         return self.choices[self.cursor]
 
-    @property
-    def submitted(self) -> bool:
-        return self._submitted
-
     def submit(self) -> None:
-        self._submitted = True
+        if self.on_submit is not None:
+            self.on_submit()
 
     def move(self, delta: int) -> None:
         cursor = self.cursor + delta

@@ -75,11 +75,15 @@ def checkbox_cell(checked: bool) -> Text:
     return Text("[ ]", style="richer_prompt.choice")
 
 
-def tab_cell(choice: Choice, focused: bool) -> Text:
+def label_cell(label: str, focused: bool) -> Text:
     return Text(
-        f" {choice.display} ",
+        f" {label} ",
         style="richer_prompt.tab.active" if focused else "richer_prompt.tab",
     )
+
+
+def tab_cell(choice: Choice, focused: bool) -> Text:
+    return label_cell(choice.display, focused)
 
 
 def arrow_cell(arrow: str, dimmed: bool) -> Text:

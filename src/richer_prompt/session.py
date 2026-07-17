@@ -35,8 +35,8 @@ class NotInteractiveError(RuntimeError):
 class Widget(Protocol[T_co]):
     """A self-contained per-run component driven by :py:func:`run`."""
 
-    @property
-    def submitted(self) -> bool: ...
+    # Called when the widget is submitted; :py:func:`run` sets it to end the loop.
+    on_submit: Callable[[], None] | None
 
     def handle_key(self, key: str) -> bool: ...
 
@@ -50,6 +50,14 @@ class Widget(Protocol[T_co]):
 def run(widget: Widget[T], console: Console) -> T:
     theme = Theme(missing_styles(console), inherit=False)
 
+    finished = False
+
+    def finish() -> None:
+        nonlocal finished
+        finished = True
+
+    widget.on_submit = finish
+
     with _key_source() as read_key, console.use_theme(theme):
         with Live(
             renderable=widget.render(),
@@ -58,7 +66,7 @@ def run(widget: Widget[T], console: Console) -> T:
             transient=True,
             vertical_overflow="visible",
         ) as live:
-            while not widget.submitted:
+            while not finished:
                 key = read_key()
                 if key in EOF_KEYS:
                     raise EOFError("end of input")

@@ -18,6 +18,11 @@ API Reference
    :inherited-members:
    :special-members: __call__
 
+.. autoclass:: richer_prompt.Form
+   :members:
+   :inherited-members:
+   :special-members: __call__
+
 .. autoclass:: richer_prompt.Choice
    :members:
 
