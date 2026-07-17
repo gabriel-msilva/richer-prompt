@@ -32,6 +32,7 @@ class FormWidget:
     steps: dict[str, Any]
     confirm: SelectWidget[bool]
     cursor: int
+    required: bool
 
     def __post_init__(self):
         if self.cursor < 0 or self.cursor > len(self.steps):
@@ -40,6 +41,10 @@ class FormWidget:
     @property
     def on_review(self) -> bool:
         return self.cursor == len(self.steps)
+
+    @property
+    def complete(self) -> bool:
+        return all(step.answered for step in self.steps.values())
 
     @property
     def focused_step(self) -> SelectWidget | MultiSelectWidget:
@@ -79,10 +84,18 @@ class FormWidget:
     def _handle_confirm(self, key: str) -> KeyOutcome:
         outcome = self.confirm.handle_key(key)
 
-        if isinstance(outcome, Done):
-            return Done(self.result()) if outcome.value else CANCELLED
+        if not isinstance(outcome, Done):
+            return outcome
 
-        return outcome
+        if not outcome.value:  # Cancel is always allowed
+            return CANCELLED
+
+        # A required form refuses to submit while any step is unanswered; the
+        # review keeps its warning and the user stays on it.
+        if self.required and not self.complete:
+            return CONSUMED
+
+        return Done(self.result())
 
     def render(self) -> RenderableType:
         rows: list[RenderableType] = [self._render_tabs(), Text()]
@@ -127,7 +140,7 @@ class FormWidget:
             Text("Review your answers", style="richer_prompt.title")
         ]
 
-        if not all(step.answered for step in self.steps.values()):
+        if not self.complete:
             sections.append(
                 Text(
                     f"{WARNING_SIGN} You have not answered all questions",
@@ -178,9 +191,13 @@ class Form:
 
     Steps are shown one at a time with a tab bar to move between them, followed
     by a review step to submit all answers at once.
-    Only answered steps appear in the result.
     Choosing *Cancel* on the review step raises
     :py:exc:`~richer_prompt.PromptCancelled`.
+
+    By default every step must be answered before the form can be submitted, so
+    the result always has one entry per step. Pass ``required=False`` to allow
+    submitting a partial form, in which case only answered steps appear in the
+    result.
 
     .. snapshot::
         :hide-code:
@@ -200,6 +217,10 @@ class Form:
         The keys are the names in navigation tabs and in the return dict,
         while the values are the prompts to ask.
         Only :py:class:`Select` and :py:class:`MultiSelect` are supported.
+    required: bool, default True
+        Whether every step must be answered before the form can be submitted.
+        When False, the form may be submitted with unanswered steps, which are
+        then omitted from the result.
     console: rich.console.Console, optional
         A ``Console`` instance.
         If None, use the global console.
@@ -220,6 +241,7 @@ class Form:
         self,
         steps: dict[str, Select | MultiSelect],
         *,
+        required: bool = True,
         console: Console | None = None,
     ):
         for name, step in steps.items():
@@ -229,6 +251,7 @@ class Form:
                 )
 
         self.steps = steps
+        self.required = required
         self.console = console or get_console()
 
     @classmethod
@@ -236,6 +259,7 @@ class Form:
         cls,
         steps: dict[str, Select | MultiSelect],
         *,
+        required: bool = True,
         console: Console | None = None,
     ) -> dict[str, Any]:
         """
@@ -245,6 +269,9 @@ class Form:
         ----------
         steps: dict of str to Select or MultiSelect
             The prompts to ask, keyed by the name used in the result.
+        required: bool, default True
+            Whether every step must be answered before the form can be
+            submitted. When False, unanswered steps are omitted from the result.
         console: rich.console.Console, optional
             A ``Console`` instance.
             If None, use the global console.
@@ -263,7 +290,7 @@ class Form:
         ...     }
         ... )
         """
-        return cls(steps, console=console)()
+        return cls(steps, required=required, console=console)()
 
     def __call__(self) -> dict[str, Any]:
         """
@@ -294,4 +321,6 @@ class Form:
             show_hint=False,
         )
 
-        return FormWidget(steps=steps, confirm=confirm, cursor=index)
+        return FormWidget(
+            steps=steps, confirm=confirm, cursor=index, required=self.required
+        )
