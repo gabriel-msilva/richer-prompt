@@ -1,5 +1,5 @@
 import dataclasses
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Final, Generic, TypeVar
 
 from rich.console import Console, Group
@@ -40,7 +40,10 @@ class MultiSelectWidget(Generic[T]):
     viewport_size: int
     show_hint: bool
 
-    _submitted: bool = dataclasses.field(init=False, default=False)
+    # Hook invoked whenever the choices are submitted; set by drivers such as Form.
+    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
+
+    submitted: bool = dataclasses.field(init=False, default=False)
 
     def __post_init__(self):
         # may point to the submit button
@@ -55,15 +58,13 @@ class MultiSelectWidget(Generic[T]):
             raise ValueError(f"Viewport size '{self.viewport_size}' must be at least 3")
 
     @property
-    def submitted(self) -> bool:
-        return self._submitted
-
-    @property
     def selected_choices(self) -> list[Choice[T]]:
         return [self.choices[i] for i in sorted(self.checked)]
 
     def submit(self) -> None:
-        self._submitted = True
+        self.submitted = True
+        if self.on_submit is not None:
+            self.on_submit()
 
     def move(self, delta: int) -> None:
         total_rows = len(self.choices) + 1
@@ -161,7 +162,7 @@ class MultiSelectWidget(Generic[T]):
         return Group(*rows)
 
     def answer(self) -> Text:
-        values = ", ".join(choice.display for choice in self.selected_choices)
+        values = self.answer_summary()
         if values:
             return Text.assemble(
                 self.message.copy(), " ", (values, "richer_prompt.cursor")
@@ -170,6 +171,10 @@ class MultiSelectWidget(Generic[T]):
         return Text.assemble(
             self.message.copy(), " ", ("(none)", "richer_prompt.description")
         )
+
+    def answer_summary(self) -> str:
+        """The submitted choices as display text, for a Form review summary."""
+        return ", ".join(choice.display for choice in self.selected_choices)
 
     def result(self) -> list[T]:
         return [choice.value for choice in self.selected_choices]

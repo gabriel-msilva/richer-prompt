@@ -10,7 +10,7 @@ from rich import errors
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
-from richer_prompt import Choice, MultiSelect, Select, Tabs
+from richer_prompt import Choice, Form, MultiSelect, Select, Tabs
 from richer_prompt.default_styles import RICHER_PROMPT_STYLES
 
 CONSOLE_WIDTH = 79
@@ -62,6 +62,7 @@ def parse_prompt_expression(expression: str) -> tuple[Any, int, set[int] | None]
         "Select": Select,
         "MultiSelect": MultiSelect,
         "Tabs": Tabs,
+        "Form": Form,
         "Choice": Choice,
     }
 
@@ -127,7 +128,7 @@ def render_initial_prompt(
     if isinstance(prompt, MultiSelect):
         return prompt._build_widget(index=index, default=default).render()
 
-    if isinstance(prompt, (Select, Tabs)):
+    if isinstance(prompt, (Select, Tabs, Form)):
         return prompt._build_widget(index=index).render()
 
     raise ValueError("snapshot only supports Select, MultiSelect, and Tabs prompts")

@@ -1,5 +1,5 @@
 import dataclasses
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Final, Generic, TypeVar
 
 from rich.console import Console, Group
@@ -37,6 +37,9 @@ class SelectWidget(Generic[T]):
     viewport_size: int
     show_hint: bool
 
+    # Hook invoked whenever the choice is submitted; set by drivers such as Form.
+    on_submit: Callable[[], None] | None = dataclasses.field(default=None, init=False)
+
     _selected: int | None = dataclasses.field(init=False, default=None)
 
     def __post_init__(self):
@@ -63,6 +66,8 @@ class SelectWidget(Generic[T]):
 
     def submit(self) -> None:
         self._selected = self.cursor
+        if self.on_submit is not None:
+            self.on_submit()
 
     def move(self, delta: int) -> None:
         self.cursor = (self.cursor + delta) % len(self.choices)
@@ -131,11 +136,15 @@ class SelectWidget(Generic[T]):
 
     def answer(self) -> Text:
         return Text.assemble(
-            self.message.copy(), " ", (self.current.display, "richer_prompt.cursor")
+            self.message.copy(), " ", (self.answer_summary(), "richer_prompt.cursor")
         )
 
+    def answer_summary(self) -> str:
+        """The submitted choice as display text, for a Form review summary."""
+        return (self.selected or self.current).display
+
     def result(self) -> T:
-        return self.current.value
+        return (self.selected or self.current).value
 
 
 class Select(ChoicePrompt[T, T]):
