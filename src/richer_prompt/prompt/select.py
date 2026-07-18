@@ -85,11 +85,13 @@ class SelectWidget(Generic[T]):
             case keys.END:
                 self.cursor = len(self.choices) - 1
             case keys.ENTER:
+                if self.current.disabled:
+                    return CONSUMED
                 self.submit()
                 return Done(self.result())
             case _ if self.numbered and key.isdecimal():
                 n = int(key) - 1
-                if 0 <= n < len(self.choices):
+                if 0 <= n < len(self.choices) and not self.choices[n].disabled:
                     self.cursor = n
                     self.submit()
                     return Done(self.result())

@@ -107,6 +107,37 @@ def test_that_digit_keys_are_inert_when_numbering_disabled(console):
         assert multiselect() == []
 
 
+def test_that_a_disabled_choice_cannot_be_toggled(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:",
+        [Choice("a"), Choice("b", disabled=True), Choice("c")],
+        console=console,
+    )
+
+    with simulate_keys(
+        keys.DOWN,
+        keys.SPACE,  # try to toggle the disabled "b" -> no-op
+        keys.DOWN,
+        keys.SPACE,  # toggle "c"
+        keys.DOWN,
+        keys.ENTER,  # submit
+    ):
+        assert multiselect() == ["c"]
+
+
+def test_that_a_disabled_choice_ignores_its_digit_shortcut(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:",
+        [Choice("a"), Choice("b", disabled=True), Choice("c")],
+        numbered=True,
+        console=console,
+    )
+
+    with simulate_keys("2", "3", keys.END, keys.ENTER):
+        # "2" targets the disabled "b" and is ignored; "3" toggles "c".
+        assert multiselect() == ["c"]
+
+
 def test_rollover(multiselect: MultiSelect):
     with simulate_keys(
         keys.UP,
@@ -481,3 +512,24 @@ def test_style():
     """
 
     assert_snapshot(prompt, expected, index=3, raw=True)
+
+
+def test_that_a_disabled_choice_is_dimmed(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:",
+        [Choice("a"), Choice("b", disabled=True), Choice("c")],
+        console=console,
+    )
+
+    expected = """
+    [richer_prompt.title]Select multiple choices:[/]
+
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][ ] [richer_prompt.cursor]a[/]
+      [richer_prompt.description]2. [/][richer_prompt.disabled][ ][/] [richer_prompt.disabled]b[/]
+      [richer_prompt.description]3. [/][ ] c
+         Submit
+
+    [richer_prompt.hint]↑↓ to navigate · Enter to select · Submit to finish[/]
+    """
+
+    assert_snapshot(multiselect, expected, raw=True)

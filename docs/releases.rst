@@ -10,6 +10,7 @@ API changes
 ~~~~~~~~~~~
 
 - Added :py:class:`Form`, which allows asking a sequence of choice prompts as a single, navigable form.
+- Added ``disabled`` parameter to :py:class:`Choice` to mark choices as unselectable.
 - Replaced the ``richer_prompt.checkbox`` and ``richer_prompt.checkbox.checked`` styles
   with a single ``richer_prompt.selected`` style name.
 

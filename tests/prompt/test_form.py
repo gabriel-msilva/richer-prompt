@@ -390,6 +390,32 @@ def test_that_fully_answered_form_does_not_show_warning(form: Form):
     assert_widget_snapshot(widget, expected)
 
 
+def test_that_no_selection_on_multiselect_counts_as_answered(form: Form):
+    widget = form._build_widget(index=2)
+    widget.steps["Select"].submit()
+
+    widget.steps["MultiSelect"].checked = set()
+    widget.steps["MultiSelect"].submit()
+
+    expected = """
+    ←  ☒ Select  ☒ MultiSelect  ✔ Submit  →
+
+    Review your answers
+
+    ● Select an option:
+      → a
+    ● Select multiple options:
+      → (none)
+
+    Ready to submit your answers?
+
+    ❯ 1. Submit answers
+      2. Cancel
+    """
+
+    assert_widget_snapshot(widget, expected)
+
+
 def test_style(form: Form):
     widget = form._build_widget(index=2)
     widget.steps["Select"].submit()
@@ -406,7 +432,7 @@ def test_style(form: Form):
 
     [richer_prompt.description]Ready to submit your answers?[/]
 
-    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.cursor]Submit answers[/]
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.disabled]Submit answers[/]
       [richer_prompt.description]2. [/][richer_prompt.choice]Cancel[/]
     """
 

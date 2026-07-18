@@ -82,20 +82,22 @@ class FormWidget:
         return outcome
 
     def _handle_confirm(self, key: str) -> KeyOutcome:
+        # Submit is disabled while a required form is incomplete, so the confirm
+        # can only ever commit True when submission is actually allowed.
+        self._sync_submit()
         outcome = self.confirm.handle_key(key)
 
         if not isinstance(outcome, Done):
             return outcome
 
-        if not outcome.value:  # Cancel is always allowed
-            return CANCELLED
+        return Done(self.result()) if outcome.value else CANCELLED
 
-        # A required form refuses to submit while any step is unanswered; the
-        # review keeps its warning and the user stays on it.
-        if self.required and not self.complete:
-            return CONSUMED
-
-        return Done(self.result())
+    def _sync_submit(self) -> None:
+        """Disable the confirm's Submit option while a required form is incomplete."""
+        submit = self.confirm.choices[0]
+        disabled = self.required and not self.complete
+        if submit.disabled != disabled:
+            self.confirm.choices[0] = dataclasses.replace(submit, disabled=disabled)
 
     def render(self) -> RenderableType:
         rows: list[RenderableType] = [self._render_tabs(), Text()]
@@ -136,6 +138,8 @@ class FormWidget:
         )
 
     def _render_review(self) -> Group:
+        self._sync_submit()
+
         sections: list[RenderableType] = [
             Text("Review your answers", style="richer_prompt.title")
         ]
@@ -164,11 +168,16 @@ def _summary(step: SelectWidget | MultiSelectWidget) -> tuple[Text, Text]:
     message = step.message.copy()
     message.style = "richer_prompt.choice"
 
+    summary = step.answer_summary()
+    detail = (
+        (f"{RIGHT_ARROW} {summary}", "richer_prompt.selected")
+        if summary
+        else (f"{RIGHT_ARROW} (none)", "richer_prompt.description")
+    )
+
     return (
         Text.assemble(f"{BLACK_CIRCLE} ", message),
-        Text.assemble(
-            "  ", (f"{RIGHT_ARROW} {step.answer_summary()}", "richer_prompt.selected")
-        ),
+        Text.assemble("  ", detail),
     )
 
 
