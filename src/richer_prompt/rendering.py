@@ -68,11 +68,16 @@ def number_cell(index: int, width: int) -> Text:
     return Text(f"{index + 1}. ".rjust(width + 2), style="richer_prompt.description")
 
 
-def checkbox_cell(checked: bool) -> Text:
+def checkbox_cell(checked: bool, disabled: bool = False) -> Text:
     if checked:
-        return Text(f"[{CHECK_MARK}]", style="richer_prompt.selected")
+        return Text(
+            f"[{CHECK_MARK}]",
+            style="richer_prompt.disabled" if disabled else "richer_prompt.selected",
+        )
 
-    return Text("[ ]", style="richer_prompt.choice")
+    return Text(
+        "[ ]", style="richer_prompt.disabled" if disabled else "richer_prompt.choice"
+    )
 
 
 def label_cell(label: str, focused: bool) -> Text:
@@ -113,7 +118,9 @@ def pointer_cell(
 def choice_label(choice: Choice, focused: bool, selected: bool = False) -> Text:
     label = Text()
 
-    if selected:
+    if choice.disabled:
+        style = "richer_prompt.disabled"
+    elif selected:
         style = "richer_prompt.selected"
     elif focused:
         style = "richer_prompt.cursor"

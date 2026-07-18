@@ -77,6 +77,9 @@ class MultiSelectWidget(Generic[T]):
         self.cursor = (self.cursor + delta) % total_rows
 
     def toggle(self) -> None:
+        if self.choices[self.cursor].disabled:
+            return
+
         if self.cursor in self.checked:
             self.checked.remove(self.cursor)
         else:
@@ -104,7 +107,7 @@ class MultiSelectWidget(Generic[T]):
                 self.toggle()
             case _ if self.numbered and key.isdecimal():
                 n = int(key) - 1
-                if 0 <= n < len(self.choices):
+                if 0 <= n < len(self.choices) and not self.choices[n].disabled:
                     self.cursor = n
                     self.toggle()
             case _:
@@ -133,7 +136,7 @@ class MultiSelectWidget(Generic[T]):
                     pointer,
                     " ",
                     number_cell(i, number_width) if self.numbered else Text(),
-                    checkbox_cell(i in self.checked),
+                    checkbox_cell(i in self.checked, self.choices[i].disabled),
                     " ",
                     choice_label(self.choices[i], is_focused),
                 )

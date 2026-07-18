@@ -18,11 +18,16 @@ class Choice(Generic[T]):
         If not provided, the value is used as the label.
     description: str, optional
         Additional text to describe the choice.
+    disabled: bool, default False
+        If `True`, the choice cannot be selected or toggled.
+
+        .. versionadded:: 0.3.0
     """
 
     value: T
     label: str = ""
     description: str = ""
+    disabled: bool = False
 
     @property
     def display(self) -> str:

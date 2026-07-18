@@ -46,11 +46,11 @@ def test_that_home_key_jumps_to_first_choice(select: Select):
 @pytest.mark.parametrize(
     ("number", "expected"),
     [
-        (0, "a"),  # Zero is ignored and treated as Enter on cursor 0
+        (0, "a"),  # Out of range is ignored
         (1, "a"),
         (2, "b"),
         (3, "c"),
-        (4, "a"),  # Out of range rolls over to first choice
+        (4, "a"),  # Out of range is ignored
     ],
 )
 def test_that_number_key_selects(select: Select, number: int, expected: str):
@@ -85,6 +85,31 @@ def test_that_digit_keys_are_inert_when_numbering_disabled(console):
     )
 
     with simulate_keys("2", keys.ENTER):
+        assert select() == "a"
+
+
+def test_that_a_disabled_choice_cannot_be_selected(console):
+    select = Select(
+        "Select a choice:",
+        [Choice("a"), Choice("b", disabled=True), Choice("c")],
+        console=console,
+    )
+
+    # Enter on the disabled "b" is a no-op. Then select "c"
+    with simulate_keys(keys.DOWN, keys.ENTER, keys.DOWN, keys.ENTER):
+        assert select() == "c"
+
+
+def test_that_a_disabled_choice_ignores_its_digit_shortcut(console):
+    select = Select(
+        "Select a choice:",
+        [Choice("a"), Choice("b", disabled=True), Choice("c")],
+        numbered=True,
+        console=console,
+    )
+
+    with simulate_keys("2", "1"):
+        # "2" targets the disabled "b" and is ignored; "1" selects "a".
         assert select() == "a"
 
 
@@ -364,3 +389,23 @@ def test_style():
     """
 
     assert_snapshot(prompt, expected, raw=True)
+
+
+def test_that_a_disabled_choice_is_dimmed(console):
+    select = Select(
+        "Select a choice:",
+        [Choice("a"), Choice("b", disabled=True), Choice("c")],
+        console=console,
+    )
+
+    expected = """
+    [richer_prompt.title]Select a choice:[/]
+
+    [richer_prompt.cursor]❯[/] [richer_prompt.description]1. [/][richer_prompt.cursor]a[/]
+      [richer_prompt.description]2. [/][richer_prompt.disabled]b[/]
+      [richer_prompt.description]3. [/][richer_prompt.choice]c[/]
+
+    [richer_prompt.hint]↑↓ to navigate · Enter to select[/]
+    """
+
+    assert_snapshot(select, expected, raw=True)
