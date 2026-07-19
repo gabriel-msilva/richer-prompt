@@ -416,6 +416,21 @@ def test_that_no_selection_on_multiselect_counts_as_answered(form: Form):
     assert_widget_snapshot(widget, expected)
 
 
+def test_that_hint_is_hidden(form: Form):
+    form.show_hint = False
+    expected = """
+    ←  ☐ Select  ☐ MultiSelect  ✔ Submit  →
+
+    Select an option:
+
+    ❯ 1. a
+      2. b
+      3. c
+    """
+
+    assert_snapshot(form, expected)
+
+
 def test_style(form: Form):
     widget = form._build_widget(index=2)
     widget.steps["Select"].submit()

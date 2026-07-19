@@ -27,12 +27,11 @@ from richer_prompt.session import CANCELLED, CONSUMED, Done, KeyOutcome, run
 
 @dataclasses.dataclass(slots=True)
 class FormWidget:
-    # Values are SelectWidget/MultiSelectWidget; typed loosely so callers may
-    # reach the concrete widget attributes (cursor, checked, ...) either type has.
     steps: dict[str, Any]
     confirm: SelectWidget[bool]
     cursor: int
     required: bool
+    show_hint: bool
 
     def __post_init__(self):
         if self.cursor < 0 or self.cursor > len(self.steps):
@@ -72,9 +71,6 @@ class FormWidget:
     def _handle_step(self, key: str) -> KeyOutcome:
         outcome = self.focused_step.handle_key(key)
 
-        # A step signals completion by returning Done (the step owns its own
-        # answer); in a form that just advances to the next step rather than
-        # ending the run, so the event is swallowed here.
         if isinstance(outcome, Done):
             self.move(1)
             return CONSUMED
@@ -82,8 +78,6 @@ class FormWidget:
         return outcome
 
     def _handle_confirm(self, key: str) -> KeyOutcome:
-        # Submit is disabled while a required form is incomplete, so the confirm
-        # can only ever commit True when submission is actually allowed.
         self._sync_submit()
         outcome = self.confirm.handle_key(key)
 
@@ -96,6 +90,7 @@ class FormWidget:
         """Disable the confirm's Submit option while a required form is incomplete."""
         submit = self.confirm.choices[0]
         disabled = self.required and not self.complete
+
         if submit.disabled != disabled:
             self.confirm.choices[0] = dataclasses.replace(submit, disabled=disabled)
 
@@ -106,8 +101,12 @@ class FormWidget:
             rows.append(self._render_review())
         else:
             rows.append(self.focused_step.render())
-            rows.append(Text())
-            rows.append(format_hint("Tab/Arrow keys to navigate", "Enter to select"))
+
+            if self.show_hint:
+                rows.append(Text())
+                rows.append(
+                    format_hint("Tab/Arrow keys to navigate", "Enter to select")
+                )
 
         return Group(*rows)
 
@@ -251,6 +250,7 @@ class Form:
         steps: dict[str, Select | MultiSelect],
         *,
         required: bool = True,
+        show_hint: bool = True,
         console: Console | None = None,
     ):
         for name, step in steps.items():
@@ -261,6 +261,7 @@ class Form:
 
         self.steps = steps
         self.required = required
+        self.show_hint = show_hint
         self.console = console or get_console()
 
     @classmethod
@@ -268,6 +269,7 @@ class Form:
         cls,
         steps: dict[str, Select | MultiSelect],
         *,
+        show_hint: bool = True,
         required: bool = True,
         console: Console | None = None,
     ) -> dict[str, Any]:
@@ -299,9 +301,9 @@ class Form:
         ...     }
         ... )
         """
-        return cls(steps, required=required, console=console)()
+        return cls(steps, required=required, show_hint=show_hint, console=console)()
 
-    def __call__(self) -> dict[str, Any]:
+    def __call__(self, index: int = 0) -> dict[str, Any]:
         """
         Run the form loop.
 
@@ -309,7 +311,11 @@ class Form:
         -------
         A dict of step name as keys and answer as value, for each answered step.
         """
-        return run(self._build_widget(), self.console)
+        widget = self._build_widget(index=index)
+
+        self.pre_prompt()
+
+        return run(widget, self.console)
 
     def _build_widget(self, index: int = 0) -> FormWidget:
         steps = {}
@@ -322,7 +328,10 @@ class Form:
             message=Text(
                 "Ready to submit your answers?", style="richer_prompt.description"
             ),
-            choices=[Choice(True, "Submit answers"), Choice(False, "Cancel")],
+            choices=[
+                Choice(True, label="Submit answers"),
+                Choice(False, label="Cancel"),
+            ],
             cursor=0,
             cursor_pointer=RIGHT_POINTER,
             numbered=True,
@@ -331,5 +340,12 @@ class Form:
         )
 
         return FormWidget(
-            steps=steps, confirm=confirm, cursor=index, required=self.required
+            steps=steps,
+            confirm=confirm,
+            cursor=index,
+            required=self.required,
+            show_hint=self.show_hint,
         )
+
+    def pre_prompt(self) -> None:
+        """Hook to display something before the prompt."""
