@@ -63,9 +63,7 @@ class ChoicePrompt(ABC, Generic[T, R_co]):
         """Shortcut to construct and run a prompt loop and return the result."""
 
     def __call__(self, *args: Any, **kwargs: Any) -> R_co:
-        """
-        Run the prompt loop, forwarding all arguments to :py:meth:`_build_widget`.
-        """
+        """Run the prompt loop, forwarding all arguments to :py:meth:`_build_widget`."""
         widget = self._build_widget(*args, **kwargs)
 
         self.pre_prompt()

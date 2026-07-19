@@ -38,9 +38,6 @@ class SelectWidget(Generic[T]):
     viewport_size: int
     show_hint: bool
 
-    # Index committed at submit time. The cursor is only navigational, so the
-    # answer must be snapshotted: revisiting a Form step and moving the cursor
-    # (without a fresh Enter) leaves the recorded choice unchanged.
     _selected: int | None = dataclasses.field(init=False, default=None)
 
     def __post_init__(self):
