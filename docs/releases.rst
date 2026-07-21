@@ -19,6 +19,10 @@ Fixes
 
 - Reduced spacing between tabs in :py:class:`Tabs`.
 
+Documentation
+~~~~~~~~~~~~~
+
+- Expanded "Usage" page into :doc:`getting-started` and :doc:`guide/index`.
 
 Version 0.2.0 (2026-07-13)
 --------------------------
@@ -51,6 +55,10 @@ Fixes
   instead of crashing with a cryptic ``termios`` error.
 - :kbd:`Ctrl+C` raises :py:exc:`KeyboardInterrupt` and :kbd:`Ctrl+D` (or :kbd:`Ctrl+Z` on Windows)
   raises :py:exc:`EOFError` while a prompt is running.
+
+Documentation
+~~~~~~~~~~~~~
+
 - Removed unused style names from the docs.
 
 

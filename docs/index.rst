@@ -1,7 +1,7 @@
 richer-prompt
 =============
 
-richer-prompt provides interactive terminal prompts built on top of `Rich <https://github.com/Textualize/rich>`_.
+`richer-prompt` provides interactive terminal prompts built on top of `Rich <https://github.com/Textualize/rich>`_.
 
 **Version**: |release|
 
@@ -9,42 +9,27 @@ richer-prompt provides interactive terminal prompts built on top of `Rich <https
 `Source Repository <https://github.com/gabriel-msilva/richer-prompt>`_
 | `Issues & Ideas <https://github.com/gabriel-msilva/richer-prompt/issues>`_
 
+---
 
-Installation
-------------
+`richer-prompt` is designed for applications that already use `rich` and want interactive
+prompts that integrate naturally with the rest of their terminal output.
+Instead of introducing a separate rendering system or requiring a full TUI framework,
+it extends the `rich` experience with beautiful, composable prompts.
 
-You can install `richer-prompt` from PyPI with pip or your favorite package manager:
+- **Focused**: provides high-quality interactive prompts without requiring a full TUI framework.
+- **Rich-native**: designed to blend seamlessly with `rich`'s rendering, colors, and layout.
+- **Beautiful by default**: polished prompts inspired by Claude Code without manual styling.
+- **Fully typed**: modern type hints for better editor support and safer code.
 
-.. tab:: pip
+See :doc:`getting-started` for installation instructions and a quick demo.
 
-   .. code-block:: bash
-
-      pip install richer-prompt
-
-.. tab:: uv
-
-   .. code-block:: bash
-
-      uv add richer-prompt
-
-Demo
-----
-
-To check if `richer-prompt` was installed correctly, and to see a quick demo of its capabilities,
-run the following from the command line:
-
-.. code-block:: bash
-
-   python -m richer_prompt
-
-.. image:: assets/demo.gif
-   :alt: richer-prompt demo
-   :align: center
+---
 
 .. toctree::
-   :maxdepth: 2
    :caption: Contents
+   :maxdepth: 2
 
-   usage
+   getting-started
+   guide/index
    api
    releases
