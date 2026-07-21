@@ -3,6 +3,18 @@
 API Reference
 =============
 
+.. currentmodule:: richer_prompt
+
+Prompts
+-------
+
+.. autosummary::
+
+   Select
+   MultiSelect
+   Tabs
+   Form
+
 .. autoclass:: richer_prompt.Select
    :members:
    :inherited-members:
@@ -23,11 +35,33 @@ API Reference
    :inherited-members:
    :special-members: __call__
 
+Choices
+-------
+
+.. autosummary::
+
+   Choice
+
 .. autoclass:: richer_prompt.Choice
    :members:
+
+Exceptions
+----------
+
+.. autosummary::
+
+   NotInteractiveError
+   PromptCancelled
 
 .. autoexception:: richer_prompt.NotInteractiveError
 
 .. autoexception:: richer_prompt.PromptCancelled
+
+Testing
+-------
+
+.. autosummary::
+
+   testing.simulate_keys
 
 .. autofunction:: richer_prompt.testing.simulate_keys
