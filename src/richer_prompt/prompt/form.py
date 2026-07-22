@@ -53,7 +53,7 @@ class FormWidget:
         self.cursor = max(0, min(len(self.steps), self.cursor + delta))
 
     def handle_key(self, key: str) -> KeyOutcome:
-        key = keys.vim_motion(key)
+        key = keys._vim_motion(key)
 
         match key:
             case keys.LEFT | keys.SHIFT_TAB:

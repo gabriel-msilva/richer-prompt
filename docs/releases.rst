@@ -23,6 +23,7 @@ Documentation
 ~~~~~~~~~~~~~
 
 - Expanded "Usage" page into :doc:`getting-started` and :doc:`guide/index`.
+- Add :mod:`richer_prompt.keys` to the API reference, with key tokens for use in testing.
 
 Version 0.2.0 (2026-07-13)
 --------------------------

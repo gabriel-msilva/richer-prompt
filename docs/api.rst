@@ -57,6 +57,12 @@ Exceptions
 
 .. autoexception:: richer_prompt.PromptCancelled
 
+Keys
+----
+
+.. automodule:: richer_prompt.keys
+   :members:
+
 Testing
 -------
 
