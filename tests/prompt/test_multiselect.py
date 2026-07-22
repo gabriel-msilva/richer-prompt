@@ -233,6 +233,19 @@ def test_that_answer_is_rendered(multiselect: MultiSelect):
     assert capture.get() == "Select multiple choices: a, c\n"
 
 
+def test_that_cannot_set_default_on_disabled_choices(console):
+    multiselect = MultiSelect(
+        "Select multiple choices:",
+        ["a", Choice("b", disabled=True), "c"],
+        console=console,
+    )
+
+    with pytest.raises(
+        ValueError, match="Default indices \\[1\\] are disabled and cannot be selected"
+    ):
+        multiselect(default={1})
+
+
 def test_that_str_choices_are_rendered(multiselect: MultiSelect):
     expected = """
     Select multiple choices:
