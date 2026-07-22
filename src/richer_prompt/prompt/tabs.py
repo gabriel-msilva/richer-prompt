@@ -39,7 +39,7 @@ class TabsWidget(Generic[T]):
         self.cursor = max(0, min(len(self.choices) - 1, cursor))
 
     def handle_key(self, key: str) -> KeyOutcome:
-        key = keys.vim_motion(key)
+        key = keys._vim_motion(key)
 
         match key:
             case keys.RIGHT | keys.TAB:
