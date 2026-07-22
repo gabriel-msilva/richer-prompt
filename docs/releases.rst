@@ -3,13 +3,13 @@ Release notes
 
 .. currentmodule:: richer_prompt
 
-Version 0.3.0 (unreleased)
+Version 0.3.0 (2026-07-21)
 --------------------------
 
 API changes
 ~~~~~~~~~~~
 
-- Added :py:class:`Form`, which allows asking a sequence of choice prompts as a single, navigable form.
+- Added :py:class:`Form` prompt, which allows asking a sequence of choice prompts as a single, navigable form.
 - Added ``disabled`` parameter to :py:class:`Choice` to mark choices as unselectable.
 - Replaced the ``richer_prompt.checkbox`` and ``richer_prompt.checkbox.checked`` styles
   with a single ``richer_prompt.selected`` style name.
