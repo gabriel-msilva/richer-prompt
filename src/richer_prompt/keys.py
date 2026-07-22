@@ -2,6 +2,8 @@
 Named keystrokes (arrows, Enter, Tab, Ctrl combos) carry a ``name`` such as "KEY_DOWN",
 while printable keys carry none and are their own character.
 See :func:`blessed.keyboard.get_curses_keycodes` for the full list of names.
+
+.. versionadded:: 0.2.0
 """
 
 from typing import Final
