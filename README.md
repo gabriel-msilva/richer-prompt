@@ -4,11 +4,23 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/richer-prompt)
 ![PyPI - License](https://img.shields.io/pypi/l/richer-prompt)
 
+**Beautiful, Rich-native interactive prompts for Python.**
+
 _richer-prompt_ provides interactive terminal prompts built on top of [Rich](https://github.com/Textualize/rich).
 
 **Visit the documentation**: [richer-prompt.readthedocs.io](https://richer-prompt.readthedocs.io/)
 
 ![richer-prompt demo](docs/assets/demo.gif)
+
+_richer-prompt_ is designed for applications that already use `rich` and want interactive
+prompts that integrate naturally with the rest of their terminal output.
+Instead of introducing a separate rendering system or requiring a full TUI framework,
+it extends the `rich` experience with beautiful, composable prompts.
+
+- **Focused**: provides high-quality interactive prompts without requiring a full TUI framework.
+- **Rich-native**: designed to blend seamlessly with `rich`'s rendering, colors, and layout.
+- **Beautiful by default**: polished prompts inspired by Claude Code without manual styling.
+- **Fully typed**: modern type hints for better editor support and safer code.
 
 ## Installation
 
@@ -30,6 +42,35 @@ run the following from the command line:
 ```sh
 python -m richer_prompt
 ```
+
+## Quickstart
+
+> [!TIP]
+> See the [documentation](https://richer-prompt.readthedocs.io/) for the full guide and API reference.
+
+Every prompt shares the same API as
+[`rich.prompt.Prompt`](https://rich.readthedocs.io/en/stable/prompt.html):
+call an instance for a reusable prompt, or use the `.ask()` class method for a one-off prompt.
+Use `Choice` objects to add labels and descriptions to the options:
+
+```python
+from richer_prompt import Choice, Select, Tabs
+
+# One-off prompt
+Select.ask("Select a color:", choices=["Red", "Green", "Blue"])
+
+# Reusable prompt instance
+confirm_action = Tabs(
+    "Do you want to continue?",
+    choices=[
+        Choice(value=False, label="No"),
+        Choice(value=True, label="Yes", description="This action cannot be undone"),
+    ]
+)
+confirm_action()
+```
+
+`richer-prompt` provides four prompt types: `Select`, `MultiSelect`, `Tabs`, and `Form`.
 
 ## Development
 
@@ -66,5 +107,5 @@ Commands:
 
 Notes:
 
-- Generated HTML output is written to `_build/html`.
+- Generated HTML output is written to `docs/_build/html` (ignore by Git).
 - The demo GIF records the current terminal and this is not exactly reproduced.
