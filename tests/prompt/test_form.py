@@ -1,7 +1,6 @@
 import pytest
 
-from richer_prompt import PromptCancelled, keys
-from richer_prompt.prompt import Form, MultiSelect, Select, Tabs
+from richer_prompt import Choice, Form, MultiSelect, PromptCancelled, Select, Tabs, keys
 from richer_prompt.testing import simulate_keys
 from tests.utils import assert_snapshot, assert_widget_snapshot
 
@@ -36,6 +35,47 @@ def optional_form(console) -> Form:
 
 
 def test_that_choices_are_selected_and_submitted(form: Form):
+    with simulate_keys(
+        # Select "a"
+        keys.ENTER,
+        # Select "x" and "z", submit
+        keys.ENTER,
+        keys.DOWN,
+        keys.DOWN,
+        keys.ENTER,
+        keys.DOWN,
+        keys.ENTER,
+        # Submit form
+        keys.ENTER,
+    ):
+        assert form() == {"Select": "a", "MultiSelect": ["x", "z"]}
+
+
+def test_that_labelled_choices_are_selected_and_submitted(console):
+    form = Form(
+        {
+            "Select": Select(
+                "Select an option:",
+                [
+                    Choice("a", label="Option A"),
+                    Choice("b", label="Option B"),
+                    Choice("c", label="Option C"),
+                ],
+                console=console,
+            ),
+            "MultiSelect": MultiSelect(
+                "Select multiple options:",
+                [
+                    Choice("x", label="Option X"),
+                    Choice("y", label="Option Y"),
+                    Choice("z", label="Option Z"),
+                ],
+                console=console,
+            ),
+        },
+        console=console,
+    )
+
     with simulate_keys(
         # Select "a"
         keys.ENTER,
