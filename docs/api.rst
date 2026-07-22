@@ -8,13 +8,6 @@ API Reference
 Prompts
 -------
 
-.. autosummary::
-
-   Select
-   MultiSelect
-   Tabs
-   Form
-
 .. autoclass:: richer_prompt.Select
    :members:
    :inherited-members:
@@ -38,20 +31,11 @@ Prompts
 Choices
 -------
 
-.. autosummary::
-
-   Choice
-
 .. autoclass:: richer_prompt.Choice
    :members:
 
 Exceptions
 ----------
-
-.. autosummary::
-
-   NotInteractiveError
-   PromptCancelled
 
 .. autoexception:: richer_prompt.NotInteractiveError
 
@@ -65,9 +49,5 @@ Keys
 
 Testing
 -------
-
-.. autosummary::
-
-   testing.simulate_keys
 
 .. autofunction:: richer_prompt.testing.simulate_keys
