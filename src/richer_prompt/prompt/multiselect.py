@@ -54,6 +54,12 @@ class MultiSelectWidget(Generic[T]):
         if offenders:
             raise ValueError(f"Default indices {sorted(offenders)!r} are out of range")
 
+        offenders = [x for x in self.checked if self.choices[x].disabled]
+        if offenders:
+            raise ValueError(
+                f"Default indices {sorted(offenders)!r} are disabled and cannot be selected"
+            )
+
         if self.viewport_size < 3:
             raise ValueError(f"Viewport size '{self.viewport_size}' must be at least 3")
 
